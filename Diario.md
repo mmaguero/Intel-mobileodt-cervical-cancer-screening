@@ -8,26 +8,26 @@ justificación de decisiones iniciales sobre el proceso que se llevará a cabo.
 ## Pre-procesamiento
 Descripción y discusión de las técnicas de preprocesamiento
 utilizadas y análisis crı́tico de su utilidad en el problema.
-[ ] Integración y detección de conflictos e inconsistencias en los datos: valores perdidos,
+- [ ] Integración y detección de conflictos e inconsistencias en los datos: valores perdidos,
 valores fuera de rango, ruido, etc.
-[ ] Transformaciones: normalización, agregación, generación de caracterı́sticas adiciona-
+- [ ] Transformaciones: normalización, agregación, generación de caracterı́sticas adiciona-
 les, etc.
-[ ] Reducción de datos: técnicas utilizadas para selección de caracterı́sticas, selección
+- [ ] Reducción de datos: técnicas utilizadas para selección de caracterı́sticas, selección
 de ejemplos, discretización, agrupación de valores, etc.
-[ ] Aumento de datos: técnicas utilizadas para incrementar la cantidad de datos dispo-
+- [ ] Aumento de datos: técnicas utilizadas para incrementar la cantidad de datos dispo-
 nibles.
 
 Resize de imágenes
 
 ## Técnicas de clasificación:
 Discusión de las técnicas y herramientas de clasificación empleadas, justificación de su elección. Por ejemplo:
-[ ] Learning from scratch vs fine-tuning
-[ ] Uso de CNNs + OVO
-[ ] Post-procesamiento OVO
+- [ ] Learning from scratch vs fine-tuning
+- [ ] Uso de CNNs + OVO
+- [ ] Post-procesamiento OVO
 
 Otros:
-[ ] feature maps,
-[ ] ensambles, etc.
+- [ ] feature maps,
+- [ ] ensambles, etc.
 
 ## Presentación y discusión de resultados:
 Descripción y discusión de las soluciones obte-
@@ -47,8 +47,10 @@ dos obtenidos, ası́ como ideas de ...
 Tabla de soluciones, incluyendo una fila por cada solución subida
 a Kaggle durante la competición. El número de filas deberá coincidir con el número de
 intentos reflejado en la web de la competición.
-Nº Solución | Pre-procesamiento | Algoritmo/Software | % de acierto entrenamiento | % de acierto test (Kaggle) | Posición Ranking 
-------------|-------------------|--------------------|----------------------------|----------------------------|------------------
+
+Nº Solución | Pre-procesamiento | Algoritmo/Software | % de acierto entrenamiento | % de acierto test (Kaggle) | Posición Ranking |
+------------|-------------------|--------------------|----------------------------|----------------------------|------------------|
+ | | | | | |
 
 
 ## Bibliografía
