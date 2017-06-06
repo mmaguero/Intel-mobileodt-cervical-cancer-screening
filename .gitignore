@@ -31,3 +31,7 @@ vignettes/*.pdf
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md
+
+#data
+data/
+dl-sdk-training-tool-1.0.1131/
