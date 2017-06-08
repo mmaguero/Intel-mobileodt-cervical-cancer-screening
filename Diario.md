@@ -9,7 +9,7 @@ Utilizaremos CNNs (Convolutional Neural Networks) y técnicas de clasificación 
 
 Para comprobar si el conjunto de datos es balanceado o no-balanceado, necesitamos saber cuantos registros hay de cada variable de clase. Hasta 1.5 se considera clases balanceadas, poseemos tipos de clases:
 - Tipo 1, con 250 + Extra, 1191
-- Tipo 2, con 781 + Extra, 
+- Tipo 2, con 781 + Extra,
 - Tipo 3, con 450 + Extra,
 
 Si consideramos solo las de train, vemos que el conjunto no es balanceado (3.12), solo las extras, no es balanceado (), y todas, es balanceado ()
@@ -58,11 +58,10 @@ Tabla de soluciones, incluyendo una fila por cada solución subida
 a Kaggle durante la competición. El número de filas deberá coincidir con el número de
 intentos reflejado en la web de la competición.
 
-Nº Solución | Pre-procesamiento | Algoritmo/Software | % de acierto entrenamiento | % de acierto test (Kaggle) | Posición Ranking |
-------------|-------------------|--------------------|----------------------------|----------------------------|------------------|
- | | | | | |
+| Nº Solución | Pre-procesamiento | Algoritmo/Software | % de acierto entrenamiento | % de acierto test (Kaggle) | Posición Ranking |
+|-------------|-------------------|--------------------|----------------------------|----------------------------|------------------|
+|             |                   |                    | 0.8554                     | 0.88509                    | 292              |
 
 
 ## Bibliografía
 Xiu-Shen, W. (2015, octubre). Must Know Tips/Tricks in Deep Neural Networks (by <a href="http://lamda.nju.edu.cn/weixs/">Xiu-Shen Wei</a>). Recuperado 6 de junio de 2017, a partir de http://lamda.nju.edu.cn/weixs/project/CNNTricks/CNNTricks.html
-

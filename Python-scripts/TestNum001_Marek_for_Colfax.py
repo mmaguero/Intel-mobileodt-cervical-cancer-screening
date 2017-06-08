@@ -32,15 +32,14 @@ from keras.utils import plot_model
 # To Avoid Tensorflow warnings
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-imgSize = 64
-prepareData = False
+imgSize = 128
+prepareData = True
 saveNetArchImage = False
-NumEpoch = 2
+NumEpoch = 100
 batchSize = 32
+percentTrainForValidation = 0.3
 SEPARATOR = "=============================================================" + \
     "==================="
-
-percentTrainForValidation = 0.3
 
 
 def im_multi(path):
@@ -201,6 +200,7 @@ def dataPreparation():
 
 def main():
 
+    print("Num of cores: "+cpu_count())
     if (prepareData):
         dataPreparation()
 
