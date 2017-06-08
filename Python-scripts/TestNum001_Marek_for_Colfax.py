@@ -210,7 +210,7 @@ def main():
     np.random.seed(17)
 
     print("\nLoading train data...\n" + SEPARATOR)
-    train_data = np.load('saved_data/train64Norm.npy')
+    train_data = np.load('saved_data/train.npy')
     train_target = np.load('saved_data/train_target.npy')
 
     x_train, x_val_train, y_train, y_val_train = train_test_split(
@@ -245,7 +245,7 @@ def main():
                         validation_data=(x_val_train, y_val_train),
                         callbacks=[checkPoint])
 
-    test_data = np.load('saved_data/test64Norm.npy')
+    test_data = np.load('saved_data/test.npy')
     test_id = np.load('saved_data/test_id.npy')
     print("\nLoaded test data...\n" + SEPARATOR)
 
