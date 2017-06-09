@@ -21,6 +21,9 @@ from matplotlib import pyplot as pp
 from matplotlib import colors as pc
 import os
 from keras.wrappers.scikit_learn import KerasClassifier
+from keras.applications.vgg16 import VGG16
+from keras.applications.inception_v3 import InceptionV3
+from keras.applications.xception import Xception
 from keras.models import Sequential, load_model
 from keras.layers.core import Dense, Dropout, Flatten, Activation
 from keras.layers.convolutional import Conv2D, MaxPooling2D
@@ -35,14 +38,12 @@ from keras.utils import plot_model
 
 imgSize = 64
 prepareData = False
-useAditional = True
-saveNetArchImage = False
+saveNetArchImage = True
 NumEpoch = 2
 batchSize = 32
-percentTrainForValidation = 0.2
-loadPreviousModel = True
-pathToPreviousModel = "saved_data/scratch_model_04_09-06-2017_12-26.hdf5"
-onlyEvaluate = True
+percentTrainForValidation = 0.5
+loadPreviousModel = False
+pathToPreviousModel = "saved_data/scratch_model_ep01_09-06-2017_12-39.hdf5"
 
 SEPARATOR = "=============================================================" + \
             "==================="
@@ -107,7 +108,7 @@ def im_stats(im_stats_df):
 def get_im_cv2(path):
     img = cv2.imread(path)
     # use cv2.resize(img, (64, 64), cv2.INTER_LINEAR)
-    resized = cv2.resize(img, (imgSize, imgSize), cv2.INTER_LINEAR) # TODO mirar el modo de redimension
+    resized = cv2.resize(img, (imgSize, imgSize), cv2.INTER_LINEAR)
     return [path, resized]
 
 
@@ -127,23 +128,22 @@ def normalize_image_features(paths):
     return fdata
 
 
-def create_model(opt_='adamax'):
-    model = Sequential()
-    model.add(Conv2D(4, (3, 3), activation='relu', input_shape=(3, imgSize,
-                                                                imgSize),
-                     data_format="channels_first"))  # input_shape=(3,64,64)
-    model.add(MaxPooling2D(pool_size=(3, 3), strides=(3, 3),
-                           data_format="channels_first"))
-    model.add(Conv2D(8, (3, 3), activation='relu',
-                     data_format="channels_first"))
-    model.add(MaxPooling2D(pool_size=(3, 3), strides=(3, 3),
-                           data_format="channels_first"))
-    model.add(Dropout(0.2))
+def create_InceptionV3_model(opt_='adamax'):
+    # TODO Probar redimensionando las imagenes a 299x299
+    model = InceptionV3(include_top=False, weights='imagenet', input_shape=(3, imgSize,
+                                                                            imgSize))
 
-    model.add(Flatten())
-    model.add(Dense(12, activation='tanh'))
-    model.add(Dropout(0.1))
-    model.add(Dense(3, activation='softmax'))
+
+    model.compile(optimizer=opt_,
+                  loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
+    return model
+
+def create_VGG_model(opt_='adamax'):
+    # TODO Probar redimensionando las imagenes a 299x299
+    model = InceptionV3(include_top=False, weights='imagenet', input_shape=(3, imgSize,
+                                                                            imgSize))
+
 
     model.compile(optimizer=opt_,
                   loss='sparse_categorical_crossentropy', metrics=['accuracy'])
@@ -151,13 +151,8 @@ def create_model(opt_='adamax'):
     return model
 
 
-
 def dataPreparation():
-    if (useAditional):
-        train = glob.glob("../data/train_256_extra/**/*.jpg")
-    else:
-        train = glob.glob("../data/train_256/**/*.jpg")
-
+    train = glob.glob("../data/train_256_extra/**/*.jpg")
 
     # train=glob.glob('../input/train/Type_1/*.jpg')[:5] +
     # glob.glob('../input/train/Type_2/*.jpg')[:5] +
@@ -178,11 +173,7 @@ def dataPreparation():
     # train_data = roi(pathtrain)
 
     print("\nSaving train images...\n" + SEPARATOR)
-    if(useAditional):
-        np.save('saved_data/trainExtra' + str(imgSize) + '.npy', train_data,
-                allow_pickle=True, fix_imports=True)
-    else:
-        np.save('saved_data/train'+str(imgSize)+'.npy', train_data,
+    np.save('saved_data/train.npy', train_data,
             allow_pickle=True, fix_imports=True)
 
     print("\nGetting train images labels...\n" + SEPARATOR)
@@ -192,12 +183,7 @@ def dataPreparation():
     print("\nClases: " + le.classes_ + "\n" +
           SEPARATOR)  # in case not 1 to 3 order
     print("\nSaving train images labels...\n" + SEPARATOR)
-
-    if (useAditional):
-        np.save('saved_data/trainExtra_target.npy', train_data,
-                allow_pickle=True, fix_imports=True)
-    else:
-        np.save('saved_data/train_target.npy', train_target,
+    np.save('saved_data/train_target.npy', train_target,
             allow_pickle=True, fix_imports=True)
 
     test = glob.glob("../data/test_256/*.jpg")
@@ -210,28 +196,14 @@ def dataPreparation():
     test_data = normalize_image_features(test['path'])
     # test_data=roi(pathtest)
     print("\nSaving test images...\n" + SEPARATOR)
-
-    if (useAditional):
-        np.save('saved_data/testExtra' + str(imgSize) + '.npy', train_data,
-                allow_pickle=True, fix_imports=True)
-    else:
-        np.save('saved_data/test' + str(imgSize) + '.npy', train_data,
-                allow_pickle=True, fix_imports=True)
-
+    np.save('saved_data/test.npy', test_data,
+            allow_pickle=True, fix_imports=True)
 
     test_id = test.image.values
     print("\nSaving test images IDs...\n" + SEPARATOR)
-    if (useAditional):
-        np.save('saved_data/testExtra_id.npy', train_data,
-                allow_pickle=True, fix_imports=True)
-    else:
-        np.save('saved_data/test_id.npy', test_id,
+    np.save('saved_data/test_id.npy', test_id,
             allow_pickle=True, fix_imports=True)
 
-def evaluateModel(model, testData, testLabels):
-    score = model.evaluate(testData, testLabels, verbose=0)
-    print('Test loss:', score[0])
-    print('Test accuracy:', score[1])
 
 def main():
     if (prepareData):
@@ -243,13 +215,8 @@ def main():
     np.random.seed(17)
 
     print("\nLoading train data...\n" + SEPARATOR)
-
-    if (useAditional):
-        train_data = np.load('saved_data/trainExtra' + str(imgSize) + '.npy')
-        train_target = np.load('saved_data/trainExtra_target.npy')
-    else:
-        train_data = np.load('saved_data/train' + str(imgSize) + '.npy')
-        train_target = np.load('saved_data/train_target.npy')
+    train_data = np.load('saved_data/train64Norm.npy')
+    train_target = np.load('saved_data/train_target.npy')
 
     x_train, x_val_train, y_train, y_val_train = train_test_split(
         train_data, train_target, test_size=percentTrainForValidation,
@@ -261,12 +228,15 @@ def main():
     datagen.fit(train_data)
 
     print("\nCreating model...\n" + SEPARATOR)
-    if(loadPreviousModel):
+    if (loadPreviousModel):
         model = load_model(pathToPreviousModel)
-        print("Loaded model from: "+pathToPreviousModel)
+        print("Loaded model from: " + pathToPreviousModel)
         model.summary()
     else:
-        model = create_model()
+        model = create_InceptionV3_model()
+
+    for i, layer in enumerate(model.layers):
+        print(i, layer.name)
 
     print("\nTraining Set shape (num Instances, RGB chanels, width, height): " + str(
         x_train.shape) + "\nTraining labels: " + str(y_train.shape) + "\n" + SEPARATOR)
@@ -277,35 +247,21 @@ def main():
     if (saveNetArchImage):
         plot_model(model, to_file='saved_data/model_' + timeStamp + '.png')
 
+    print("\nFitting model...\n" + SEPARATOR)
+    checkPoint = ModelCheckpoint(
+        "saved_data/scratch_model_ep{epoch:02d}_" + timeStamp + ".hdf5",
+        save_best_only=True)
+    # tfBoard = TensorBoard("saved_data/log", histogram_freq=2, write_graph=True, write_images=True,
+    # embeddings_freq=2)
+    model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
+                                     shuffle=True),
+                        steps_per_epoch=len(x_train), epochs=NumEpoch,
+                        validation_data=(x_val_train, y_val_train),
+                        callbacks=[checkPoint], verbose=2)
 
-
-    if (onlyEvaluate):
-
-        print("\nEvaluating Model...\n" + SEPARATOR)
-        evaluateModel(model, x_val_train, y_val_train)
-
-    else:
-        print("\nFitting model...\n" + SEPARATOR)
-        checkPoint = ModelCheckpoint(
-            "saved_data/scratch_model_ep{epoch:02d}_" + timeStamp + ".hdf5",
-            save_best_only=True)
-        # tfBoard = TensorBoard("saved_data/log", histogram_freq=2, write_graph=True, write_images=True,
-        # embeddings_freq=2)
-        model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
-                                         shuffle=True),
-                            steps_per_epoch=len(x_train), epochs=NumEpoch,
-                            validation_data=(x_val_train, y_val_train),
-                            callbacks=[checkPoint], verbose=2)
-
-    print("\nLoading test data...\n" + SEPARATOR)
-
-    if (useAditional):
-        test_data = np.load('saved_data/testExtra' + str(imgSize) + '.npy')
-        test_id = np.load('saved_data/testExtra_id.npy')
-    else:
-        test_data = np.load('saved_data/test' + str(imgSize) + '.npy')
-        test_id = np.load('saved_data/test_id.npy')
-
+    test_data = np.load('saved_data/test64Norm.npy')
+    test_id = np.load('saved_data/test_id.npy')
+    print("\nLoaded test data...\n" + SEPARATOR)
 
     print("\nPredicting with model...\n" + SEPARATOR)
     pred = model.predict_proba(test_data)
