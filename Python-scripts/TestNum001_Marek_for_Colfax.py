@@ -33,11 +33,11 @@ from keras.utils import plot_model
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 imgSize = 128
-prepareData = True
+prepareData = False
 saveNetArchImage = False
 NumEpoch = 100
 batchSize = 32
-percentTrainForValidation = 0.3
+percentTrainForValidation = 0.2
 SEPARATOR = "=============================================================" + \
     "==================="
 
@@ -152,8 +152,8 @@ def dataPreparation():
     # glob.glob('../input/train/Type_3/*.jpg')[:5]
     print("\nLoading train images...\n" + SEPARATOR)
 
-    train = pd.DataFrame([[p.split('/')[2].split('\\')[1],
-                           p.split('/')[2].split('\\')[2], p]
+    train = pd.DataFrame([[p.split('/')[3],
+                           p.split('/')[4], p]
                           for p in train], columns=['type', 'image', 'path'])
 
     train = im_stats(train)
@@ -181,7 +181,7 @@ def dataPreparation():
 
     test = glob.glob("../data/test_256/*.jpg")
     print("\nLoading test images...\n" + SEPARATOR)
-    test = pd.DataFrame([[p.split('/')[2].split('\\')[1], p]
+    test = pd.DataFrame([[p.split('/')[3], p]
                          for p in test], columns=['image', 'path'])
     # [::20] #limit for Kaggle Demo
 
@@ -200,7 +200,7 @@ def dataPreparation():
 
 def main():
 
-    print("Num of cores: "+cpu_count())
+    print("Num of cores: "+str(cpu_count()))
     if (prepareData):
         dataPreparation()
 

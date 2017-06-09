@@ -1,0 +1,98 @@
+name: intel_env
+channels:
+- intel
+- defaults
+dependencies:
+- distribute=0.6.45=py27_1
+- intel::backports=1.0=py27_intel_6
+- intel::backports_abc=0.5=py27_intel_0
+- intel::cairo=1.14.8=intel_1
+- intel::cycler=0.10.0=py27_intel_5
+- intel::fontconfig=2.12.1=intel_0
+- intel::freetype=2.5.5=intel_9
+- intel::funcsigs=1.0.2=py27_intel_5
+- intel::functools32=3.2.3.2=py27_intel_5
+- intel::h5py=2.7.0=py27_intel_0
+- intel::hdf5=1.8.17=intel_8
+- intel::icc_rt=16.0.3=intel_6
+- intel::intelpython=2017.0.3=4
+- intel::ipp=2017.0.3=intel_0
+- intel::jpeg=9b=intel_0
+- intel::libpng=1.6.28=intel_10
+- intel::libtiff=4.0.7=intel_9
+- intel::libxml2=2.9.4=intel_10
+- intel::matplotlib=2.0.0=py27_intel_0
+- intel::mkl=2017.0.3=intel_6
+- intel::numpy=1.11.3=py27_intel_8
+- intel::olefile=0.44=py27_intel_0
+- intel::opencv=3.1.0=np111py27_intel_5
+- intel::openmp=2017.0.3=intel_8
+- intel::openssl=1.0.2k=intel_3
+- intel::pandas=0.19.2=py27_intel_4
+- intel::pillow=4.1.0=py27_intel_0
+- intel::pip=9.0.1=py27_intel_0
+- intel::pixman=0.34.0=intel_0
+- intel::protobuf=3.2.0=py27_intel_0
+- intel::pycairo=1.10.0=py27_intel_5
+- intel::pydaal=2017.0.3.20170412=py27_intel_3
+- intel::pyparsing=2.1.4=py27_intel_5
+- intel::python=2.7.13=intel_1
+- intel::python-dateutil=2.6.0=py27_intel_0
+- intel::pytz=2017.2=py27_intel_0
+- intel::pyyaml=3.12=py27_intel_1
+- intel::scikit-learn=0.18.1=py27_intel_6
+- intel::scipy=0.18.1=np111py27_intel_13
+- intel::setuptools=27.2.0=py27_intel_0
+- intel::singledispatch=3.4.0.3=py27_intel_5
+- intel::six=1.10.0=py27_intel_7
+- intel::sqlite=3.13.0=intel_14
+- intel::ssl_match_hostname=3.5.0.1=py27_intel_5
+- intel::tbb=2017.0.6=py27_intel_3
+- intel::tcl=8.6.4=intel_16
+- intel::theano=1.1=py27_intel_2
+- intel::tk=8.6.4=intel_26
+- intel::tornado=4.4.2=py27_intel_0
+- intel::wheel=0.29.0=py27_intel_5
+- intel::xz=5.2.2=intel_15
+- intel::yaml=0.1.6=intel_10
+- intel::zlib=1.2.11=intel_2
+- keras=2.0.2=py27_0
+- libprotobuf=3.2.0=0
+- mock=2.0.0=py27_0
+- pbr=1.10.0=py27_0
+- readline=6.2=2
+- seaborn=0.7.1=py27_0
+- system=5.8=2
+- tensorflow=1.1.0=np111py27_0
+- werkzeug=0.12.2=py27_0
+- pip:
+  - backports-abc==0.5
+  - backports.ssl-match-hostname==3.5.0.1
+  - cycler==0.10.0
+  - funcsigs==1.0.2
+  - functools32==3.2.3.post2
+  - h5py==2.7.0
+  - matplotlib==2.0.0
+  - numpy==1.11.3
+  - olefile==0.44
+  - pandas==0.19.2
+  - pillow==4.1.0
+  - pip==9.0.1
+  - protobuf==3.2.0
+  - pycairo==1.10.0
+  - pydaal==2017.0.3.20170412
+  - pyparsing==2.1.4
+  - python-dateutil==2.6.0
+  - pytz==2017.2
+  - pyyaml==3.12
+  - scikit-learn==0.18.1
+  - scipy==0.18.1
+  - setuptools==27.2.0
+  - singledispatch==3.4.0.3
+  - six==1.10.0
+  - tbb==0.1
+  - theano==0.9.0.dev2
+  - tornado==4.4.2
+  - wheel==0.29.0
+prefix: /home/u3875/.conda/envs/intel_env
+
