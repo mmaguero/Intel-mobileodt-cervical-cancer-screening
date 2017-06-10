@@ -20,6 +20,7 @@ import cv2
 from matplotlib import pyplot as pp
 from matplotlib import colors as pc
 import os
+from platform import system
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras.applications.vgg16 import VGG16
 from keras.applications.inception_v3 import InceptionV3
@@ -36,14 +37,14 @@ from keras.utils import plot_model
 # To Avoid Tensorflow warnings
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-imgSize = 64
-prepareData = False
+imgSize = 32
+prepareData = True
 saveNetArchImage = True
-NumEpoch = 2
-batchSize = 32
-percentTrainForValidation = 0.5
+NumEpoch = 1
+batchSize = 2
+percentTrainForValidation = 0.9
 loadPreviousModel = False
-pathToPreviousModel = "saved_data/scratch_model_ep01_09-06-2017_12-39.hdf5"
+pathToPreviousModel = "saved_data/scratch_model_ep00_09-06-2017_15-53.hdf5"
 
 SEPARATOR = "=============================================================" + \
             "==================="
@@ -159,8 +160,13 @@ def dataPreparation():
     # glob.glob('../input/train/Type_3/*.jpg')[:5]
     print("\nLoading train images...\n" + SEPARATOR)
 
-    train = pd.DataFrame([[p.split('/')[2].split('\\')[1],
+    if(system().lower() == "windows"):
+        train = pd.DataFrame([[p.split('/')[2].split('\\')[1],
                            p.split('/')[2].split('\\')[2], p]
+                          for p in train], columns=['type', 'image', 'path'])
+    elif(system().lower() == "linux"):
+        train = pd.DataFrame([[p.split('/')[3],
+                           p.split('/')[4], p]
                           for p in train], columns=['type', 'image', 'path'])
 
     train = im_stats(train)
@@ -188,8 +194,13 @@ def dataPreparation():
 
     test = glob.glob("../data/test_256/*.jpg")
     print("\nLoading test images...\n" + SEPARATOR)
-    test = pd.DataFrame([[p.split('/')[2].split('\\')[1], p]
+    if system().lower() == "windows":
+        test = pd.DataFrame([[p.split('/')[2].split('\\')[1], p]
                          for p in test], columns=['image', 'path'])
+    elif(system().lower() == "linux"):
+        test = pd.DataFrame([[p.split('/')[3], p]
+                         for p in test], columns=['image', 'path'])
+        
     # [::20] #limit for Kaggle Demo
 
     print("\nNormalizing test images...\n" + SEPARATOR)
