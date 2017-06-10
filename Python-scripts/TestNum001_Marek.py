@@ -27,12 +27,12 @@ from image_utils import ImageUtils
 imgSize = 64
 prepareData = False
 useAditional = True
-saveNetArchImage = True
-NumEpoch = 10
-batchSize = 64
-percentTrainForValidation = 0.2
-loadPreviousModel = False
-pathToPreviousModel = "saved_data/scratch_model_04_09-06-2017_12-26.hdf5"
+saveNetArchImage = False
+NumEpoch = 2
+batchSize = 32
+percentTrainForValidation = 0.1
+loadPreviousModel = True
+pathToPreviousModel = "saved_data/scratch_model_ep09_10-06-2017_13-42.hdf5"
 onlyEvaluate = False
 
 SEPARATOR = "=============================================================" + \

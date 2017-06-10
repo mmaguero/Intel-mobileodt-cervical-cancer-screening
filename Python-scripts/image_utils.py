@@ -165,7 +165,7 @@ class ImageUtils:
         # test_data=roi(pathtest)
         print("\nSaving test images...\n" + self.SEPARATOR)
 
-        np.save('saved_data/test' + str(self.imgSize) + '.npy', train_data,
+        np.save('saved_data/test' + str(self.imgSize) + '.npy', test_data,
                 allow_pickle=True, fix_imports=True)
 
         test_id = test.image.values
