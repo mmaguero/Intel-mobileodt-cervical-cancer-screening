@@ -20,6 +20,8 @@ import cv2
 from matplotlib import pyplot as pp
 from matplotlib import colors as pc
 import os
+from platform import system
+
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras.models import Sequential, load_model
 from keras.layers.core import Dense, Dropout, Flatten, Activation
@@ -37,12 +39,12 @@ imgSize = 64
 prepareData = False
 useAditional = True
 saveNetArchImage = False
-NumEpoch = 2
+NumEpoch = 1
 batchSize = 32
 percentTrainForValidation = 0.2
 loadPreviousModel = True
 pathToPreviousModel = "saved_data/scratch_model_04_09-06-2017_12-26.hdf5"
-onlyEvaluate = True
+onlyEvaluate = False
 
 SEPARATOR = "=============================================================" + \
             "==================="
@@ -299,12 +301,9 @@ def main():
 
     print("\nLoading test data...\n" + SEPARATOR)
 
-    if (useAditional):
-        test_data = np.load('saved_data/testExtra' + str(imgSize) + '.npy')
-        test_id = np.load('saved_data/testExtra_id.npy')
-    else:
-        test_data = np.load('saved_data/test' + str(imgSize) + '.npy')
-        test_id = np.load('saved_data/test_id.npy')
+
+    test_data = np.load('saved_data/test' + str(imgSize) + '.npy')
+    test_id = np.load('saved_data/test_id.npy')
 
 
     print("\nPredicting with model...\n" + SEPARATOR)

@@ -18,7 +18,6 @@ from sklearn.preprocessing import LabelEncoder
 
 
 class ImageUtils:
-    
     SEPARATOR = "=============================================================" + \
                 "==================="
 
@@ -78,7 +77,7 @@ class ImageUtils:
         p.close()
         return im_stats_df
 
-    def get_im_cv2(self,path):
+    def get_im_cv2(self, path):
         img = cv2.imread(path)
         # use cv2.resize(img, (64, 64), cv2.INTER_LINEAR)
         resized = cv2.resize(img, (self.imgSize, self.imgSize), cv2.INTER_LINEAR)  # TODO mirar el modo de redimension
@@ -99,14 +98,11 @@ class ImageUtils:
         p.close()
         return fdata
 
-
-
     def dataPreparation(self):
         if (self.useAditional):
             train = glob.glob("../data/train_256_extra/**/*.jpg")
         else:
             train = glob.glob("../data/train_256/**/*.jpg")
-
 
         # train=glob.glob('../input/train/Type_1/*.jpg')[:5] +
         # glob.glob('../input/train/Type_2/*.jpg')[:5] +
@@ -132,12 +128,12 @@ class ImageUtils:
         # train_data = roi(pathtrain)
 
         print("\nSaving train images...\n" + self.SEPARATOR)
-        if(self.useAditional):
+        if (self.useAditional):
             np.save('saved_data/trainExtra' + str(self.imgSize) + '.npy', train_data,
                     allow_pickle=True, fix_imports=True)
         else:
-            np.save('saved_data/train'+str(self.imgSize)+'.npy', train_data,
-                allow_pickle=True, fix_imports=True)
+            np.save('saved_data/train' + str(self.imgSize) + '.npy', train_data,
+                    allow_pickle=True, fix_imports=True)
 
         print("\nGetting train images labels...\n" + self.SEPARATOR)
         le = LabelEncoder()
@@ -152,7 +148,7 @@ class ImageUtils:
                     allow_pickle=True, fix_imports=True)
         else:
             np.save('saved_data/train_target.npy', train_target,
-                allow_pickle=True, fix_imports=True)
+                    allow_pickle=True, fix_imports=True)
 
         test = glob.glob("../data/test_256/*.jpg")
         print("\nLoading test images...\n" + self.SEPARATOR)
@@ -169,19 +165,10 @@ class ImageUtils:
         # test_data=roi(pathtest)
         print("\nSaving test images...\n" + self.SEPARATOR)
 
-        if (self.useAditional):
-            np.save('saved_data/testExtra' + str(self.imgSize) + '.npy', train_data,
-                    allow_pickle=True, fix_imports=True)
-        else:
-            np.save('saved_data/test' + str(self.imgSize) + '.npy', train_data,
-                    allow_pickle=True, fix_imports=True)
-
+        np.save('saved_data/test' + str(self.imgSize) + '.npy', train_data,
+                allow_pickle=True, fix_imports=True)
 
         test_id = test.image.values
         print("\nSaving test images IDs...\n" + self.SEPARATOR)
-        if (self.useAditional):
-            np.save('saved_data/testExtra_id.npy', train_data,
-                    allow_pickle=True, fix_imports=True)
-        else:
-            np.save('saved_data/test_id.npy', test_id,
+        np.save('saved_data/test_id.npy', test_id,
                 allow_pickle=True, fix_imports=True)
