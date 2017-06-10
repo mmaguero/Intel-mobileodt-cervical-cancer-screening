@@ -98,6 +98,15 @@ class ImageUtils:
         p.close()
         return fdata
 
+
+    def deleteBadImages(self, train):
+
+
+
+        train = train[train['size'] != '0 0'].reset_index(
+            drop=True)  # remove bad images
+        return train
+
     def dataPreparation(self):
         if (self.useAditional):
             train = glob.glob("../data/train_256_extra/**/*.jpg")
@@ -120,8 +129,7 @@ class ImageUtils:
 
         train = self.im_stats(train)
         print("\nRemoving bad train images..\n" + self.SEPARATOR)
-        train = train[train['size'] != '0 0'].reset_index(
-            drop=True)  # remove bad images
+        train = self.deleteBadImages(train)
 
         print("\nNormalizing train images...\n" + self.SEPARATOR)
         train_data = self.normalize_image_features(train['path'])
