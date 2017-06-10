@@ -61,6 +61,7 @@ intentos reflejado en la web de la competición.
 | Nº Solución | Pre-procesamiento | Algoritmo/Software | % de acierto entrenamiento | % de acierto test (Kaggle) | Posición Ranking |
 |-------------|-------------------|--------------------|----------------------------|----------------------------|------------------|
 |             |                   |                    | 0.8554                     | 0.88509                    | 292              |
+|             |                   |                    | 0.7675                     | 1.30324                    | 300              |
 
 
 ## Bibliografía
