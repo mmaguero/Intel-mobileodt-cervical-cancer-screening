@@ -144,7 +144,7 @@ class ImageUtils:
         print("\nSaving train images labels...\n" + self.SEPARATOR)
 
         if (self.useAditional):
-            np.save('saved_data/trainExtra_target.npy', train_data,
+            np.save('saved_data/trainExtra_target.npy', train_target,
                     allow_pickle=True, fix_imports=True)
         else:
             np.save('saved_data/train_target.npy', train_target,

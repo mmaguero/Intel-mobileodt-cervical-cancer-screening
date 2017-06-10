@@ -27,11 +27,11 @@ from image_utils import ImageUtils
 imgSize = 64
 prepareData = False
 useAditional = True
-saveNetArchImage = False
-NumEpoch = 1
-batchSize = 32
+saveNetArchImage = True
+NumEpoch = 10
+batchSize = 64
 percentTrainForValidation = 0.2
-loadPreviousModel = True
+loadPreviousModel = False
 pathToPreviousModel = "saved_data/scratch_model_04_09-06-2017_12-26.hdf5"
 onlyEvaluate = False
 
@@ -40,7 +40,7 @@ SEPARATOR = "=============================================================" + \
 
 
 
-def create_model(opt_='adamax'):
+def create_model(opt_='adadelta'):
     model = Sequential()
     model.add(Conv2D(4, (3, 3), activation='relu', input_shape=(3, imgSize,
                                                                 imgSize),
@@ -106,7 +106,9 @@ def main():
         model = create_model()
 
     print("\nTraining Set shape (num Instances, RGB chanels, width, height): " + str(
-        x_train.shape) + "\nTraining labels: " + str(y_train.shape) + "\n" + SEPARATOR)
+        x_train.shape) + "\nTraining labels: " + str(y_train.shape) + "\nValidating set shape: "+ str(
+        x_val_train.shape)+"\nValidating set labels: "+ str(
+        y_val_train.shape)+"\n" + SEPARATOR)
 
     currentDate = datetime.today()
     timeStamp = currentDate.strftime("%d-%m-%Y_%H-%M")
@@ -132,7 +134,7 @@ def main():
                                          shuffle=True),
                             steps_per_epoch=len(x_train), epochs=NumEpoch,
                             validation_data=(x_val_train, y_val_train),
-                            callbacks=[checkPoint], verbose=2)
+                            callbacks=[checkPoint])#, verbose=2)
 
     print("\nLoading test data...\n" + SEPARATOR)
 
