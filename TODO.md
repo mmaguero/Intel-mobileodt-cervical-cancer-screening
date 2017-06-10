@@ -5,4 +5,4 @@
 - [ ] Realizar [EDA](https://www.kaggle.com/philschmidt/cervix-eda-model-selection)
 - [ ] Probar eliminando imagenes incorrectas según se comenta en este [kernel](https://www.kaggle.com/deveaup/checking-bounding-boxes-and-additional-dataset/notebook/notebook) y en [este](https://www.kaggle.com/chiszpanski/non-cervix-images)
 - [ ] Probar más data augmentatión en Keras usando [ImagePreprocessing](https://keras.io/preprocessing/image/#imagedatagenerator)
-- [ ]
+- [ ] Comparar arquitectura red buena preentrenada con inicialización aleatoria

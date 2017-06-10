@@ -28,12 +28,12 @@ imgSize = 64
 prepareData = False
 useAditional = True
 saveNetArchImage = False
-NumEpoch = 2
+NumEpoch = 10
 batchSize = 32
 percentTrainForValidation = 0.1
 loadPreviousModel = True
-pathToPreviousModel = "saved_data/scratch_model_ep09_10-06-2017_13-42.hdf5"
-onlyEvaluate = False
+pathToPreviousModel = "saved_data/scratch_model_ep05_10-06-2017_22-08.hdf5"
+onlyEvaluate = True
 
 SEPARATOR = "=============================================================" + \
             "==================="
@@ -134,7 +134,8 @@ def main():
                                          shuffle=True),
                             steps_per_epoch=len(x_train), epochs=NumEpoch,
                             validation_data=(x_val_train, y_val_train),
-                            callbacks=[checkPoint])#, verbose=2)
+                            callbacks=[checkPoint]
+                            , verbose=2)
 
     print("\nLoading test data...\n" + SEPARATOR)
 
