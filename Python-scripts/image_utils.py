@@ -139,7 +139,7 @@ class ImageUtils:
         le = LabelEncoder()
         train_target = le.fit_transform(train['type'].values)
         # FIXME da error
-        print("\nClases: " + le.classes_ + "\n" +
+        print("\nClases: " + str(le.classes_) + "\n" +
               self.SEPARATOR)  # in case not 1 to 3 order
         print("\nSaving train images labels...\n" + self.SEPARATOR)
 
