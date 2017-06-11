@@ -10,22 +10,22 @@ import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 
 
 # Any results you write to the current directory are saved as output.
+import glob
+import cv2
+import os
 from PIL import ImageFilter, ImageStat, Image, ImageDraw
 from datetime import datetime
 from multiprocessing import Pool, cpu_count
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
-import glob
-import cv2
+from platform import system
 from matplotlib import pyplot as pp
 from matplotlib import colors as pc
-import os
-from platform import system
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras.applications.vgg16 import VGG16
 from keras.applications.inception_v3 import InceptionV3
-from keras.applications.xception import Xception
-from keras.models import Sequential, load_model
+from keras.applications.resnet50 import ResNet50
+from keras.models import Sequential, load_model, Model
 from keras.layers.core import Dense, Dropout, Flatten, Activation
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras import optimizers
@@ -33,18 +33,20 @@ from keras.callbacks import ModelCheckpoint, TensorBoard
 from keras.preprocessing.image import ImageDataGenerator
 from keras import backend as K
 from keras.utils import plot_model
+from keras.optimizers import SGD
 
 # To Avoid Tensorflow warnings
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-imgSize = 32
-prepareData = True
-saveNetArchImage = True
+imgSize = 150
+prepareData = False
+saveNetArchImage = False
 NumEpoch = 1
-batchSize = 2
-percentTrainForValidation = 0.9
-loadPreviousModel = False
-pathToPreviousModel = "saved_data/scratch_model_ep00_09-06-2017_15-53.hdf5"
+batchSize = 1
+percentTrainForValidation = 0.9975
+loadPreviousModel = True
+pathToPreviousModel = "saved_data/scratch_model_ep00_11-06-2017_11-56.hdf5"
+ftModel = "IV3" # IV3/VGG16/RN50 = InceptionV3[Min.139|Def.299]/VGG16[Min.48|Def.224]/ResNet50[Min.197|Rec.224]
 
 SEPARATOR = "=============================================================" + \
             "==================="
@@ -129,25 +131,45 @@ def normalize_image_features(paths):
     return fdata
 
 
-def create_InceptionV3_model(opt_='adamax'):
+def create_InceptionV3_model(opt_='adadelta'): #adamax
     # TODO Probar redimensionando las imagenes a 299x299
     model = InceptionV3(include_top=False, weights='imagenet', input_shape=(3, imgSize,
                                                                             imgSize))
-
-
     model.compile(optimizer=opt_,
                   loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
     return model
 
-def create_VGG_model(opt_='adamax'):
-    # TODO Probar redimensionando las imagenes a 299x299
-    model = InceptionV3(include_top=False, weights='imagenet', input_shape=(3, imgSize,
-                                                                            imgSize))
+def create_VGG_model(opt_='adadelta'): #adamax
+    # TODO Probar redimensionando las imagenes a 299x29
 
+    model = VGG16(include_top=False, weights='imagenet', input_shape=(imgSize,
+                                                                            imgSize, 3))
+    model.compile(optimizer=opt_,
+                  loss='sparse_categorical_crossentropy', metrics=['accuracy'])   
+
+    return model
+
+# https://keras.io/applications/
+# http://www.pyimagesearch.com/2017/03/20/imagenet-vggnet-resnet-inception-xception-keras/ 
+def create_pretrained_model(baseModel, opt_='adadelta'):
+    if (baseModel == "VGG16"):
+        myModel = VGG16(weights='imagenet', include_top=False)
+    elif (baseModel == "IV3"):
+        myModel = InceptionV3(weights='imagenet',include_top=False, input_shape=(3, imgSize, imgSize))
+    elif (baseModel == "RN50"):
+        myModel = ResNet50(weights='imagenet',include_top=False)
+
+    x = Flatten()(myModel.output)
+    output = Dense(3, activation='softmax')(x)
+    model = Model(inputs=myModel.input, outputs=output)
+
+    for layer in myModel.layers:
+        layer.trainable = False
 
     model.compile(optimizer=opt_,
                   loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    model.summary()
 
     return model
 
@@ -226,8 +248,8 @@ def main():
     np.random.seed(17)
 
     print("\nLoading train data...\n" + SEPARATOR)
-    train_data = np.load('saved_data/train64Norm.npy')
-    train_target = np.load('saved_data/train_target.npy')
+    train_data = np.load('saved_data/trainExtra150.npy')
+    train_target = np.load('saved_data/trainExtra_target.npy')
 
     x_train, x_val_train, y_train, y_val_train = train_test_split(
         train_data, train_target, test_size=percentTrainForValidation,
@@ -244,7 +266,7 @@ def main():
         print("Loaded model from: " + pathToPreviousModel)
         model.summary()
     else:
-        model = create_InceptionV3_model()
+        model = create_pretrained_model(ftModel)
 
     for i, layer in enumerate(model.layers):
         print(i, layer.name)
@@ -268,14 +290,15 @@ def main():
                                      shuffle=True),
                         steps_per_epoch=len(x_train), epochs=NumEpoch,
                         validation_data=(x_val_train, y_val_train),
-                        callbacks=[checkPoint], verbose=2)
+                        callbacks=[checkPoint], verbose=1)
 
-    test_data = np.load('saved_data/test64Norm.npy')
+    test_data = np.load('saved_data/test150.npy')
     test_id = np.load('saved_data/test_id.npy')
     print("\nLoaded test data...\n" + SEPARATOR)
 
     print("\nPredicting with model...\n" + SEPARATOR)
-    pred = model.predict_proba(test_data)
+    #pred = model.predict_proba(test_data)
+    pred = model.predict(test_data)
 
     df = pd.DataFrame(pred, columns=['Type_1', 'Type_2', 'Type_3'])
     df['image_name'] = test_id
