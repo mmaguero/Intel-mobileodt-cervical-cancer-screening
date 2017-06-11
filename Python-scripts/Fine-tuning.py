@@ -33,7 +33,6 @@ from keras.callbacks import ModelCheckpoint, TensorBoard
 from keras.preprocessing.image import ImageDataGenerator
 from keras import backend as K
 from keras.utils import plot_model
-from keras.optimizers import SGD
 
 # To Avoid Tensorflow warnings
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -44,9 +43,9 @@ saveNetArchImage = False
 NumEpoch = 1
 batchSize = 1
 percentTrainForValidation = 0.9975
-loadPreviousModel = True
+loadPreviousModel = False
 pathToPreviousModel = "saved_data/scratch_model_ep00_11-06-2017_11-56.hdf5"
-ftModel = "IV3" # IV3/VGG16/RN50 = InceptionV3[Min.139|Def.299]/VGG16[Min.48|Def.224]/ResNet50[Min.197|Rec.224]
+ftModel = "VGG16" # IV3/VGG16/RN50 = InceptionV3[Min.139|Def.299]/VGG16[Min.48|Def.224]/ResNet50[Min.197|Rec.224]
 
 SEPARATOR = "=============================================================" + \
             "==================="
@@ -130,35 +129,17 @@ def normalize_image_features(paths):
     p.close()
     return fdata
 
-
-def create_InceptionV3_model(opt_='adadelta'): #adamax
-    # TODO Probar redimensionando las imagenes a 299x299
-    model = InceptionV3(include_top=False, weights='imagenet', input_shape=(3, imgSize,
-                                                                            imgSize))
-    model.compile(optimizer=opt_,
-                  loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-
-    return model
-
-def create_VGG_model(opt_='adadelta'): #adamax
-    # TODO Probar redimensionando las imagenes a 299x29
-
-    model = VGG16(include_top=False, weights='imagenet', input_shape=(imgSize,
-                                                                            imgSize, 3))
-    model.compile(optimizer=opt_,
-                  loss='sparse_categorical_crossentropy', metrics=['accuracy'])   
-
-    return model
-
 # https://keras.io/applications/
 # http://www.pyimagesearch.com/2017/03/20/imagenet-vggnet-resnet-inception-xception-keras/ 
+# https://pastebin.com/CWZBeDEb
+# Theano como backend: necesita estar a la ultima version (tambien Keras), tomar de los repos de GITHUB
 def create_pretrained_model(baseModel, opt_='adadelta'):
     if (baseModel == "VGG16"):
-        myModel = VGG16(weights='imagenet', include_top=False)
+        myModel = VGG16(weights='imagenet', include_top=False, input_shape=(3, imgSize, imgSize))
     elif (baseModel == "IV3"):
-        myModel = InceptionV3(weights='imagenet',include_top=False, input_shape=(3, imgSize, imgSize))
+        myModel = InceptionV3(weights='imagenet', include_top=False, input_shape=(3, imgSize, imgSize))
     elif (baseModel == "RN50"):
-        myModel = ResNet50(weights='imagenet',include_top=False)
+        myModel = ResNet50(weights='imagenet', include_top=False, input_shape=(3, imgSize, imgSize))
 
     x = Flatten()(myModel.output)
     output = Dense(3, activation='softmax')(x)
