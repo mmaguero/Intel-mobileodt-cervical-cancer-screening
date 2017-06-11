@@ -22,10 +22,11 @@ class ImageUtils:
     SEPARATOR = "=============================================================" + \
                 "==================="
 
-    def __init__(self, imgSize, useAditional, keepAspectRatio):
+    def __init__(self, imgSize, useAditional, keepAspectRatio, useKaggleData):
         self.imgSize = imgSize
         self.useAditional = useAditional
         self.keepAspectRatio = keepAspectRatio
+        self.useKaggleData=useKaggleData
 
     def im_multi(self, path):
         try:
@@ -179,10 +180,17 @@ class ImageUtils:
         return train
 
     def dataPreparation(self):
-        if (self.useAditional):
-            train = glob.glob("../data/train_256_extra/**/*.jpg")
+        if (self.useKaggleData):
+            if (self.useAditional):
+                train = glob.glob("../data/train_extra/**/*.jpg")
+            else:
+                train = glob.glob("../data/train/**/*.jpg")
+
         else:
-            train = glob.glob("../data/train_256/**/*.jpg")
+            if (self.useAditional):
+                train = glob.glob("../data/train_256_extra/**/*.jpg")
+            else:
+                train = glob.glob("../data/train_256/**/*.jpg")
 
         # train=glob.glob('../input/train/Type_1/*.jpg')[:5] +
         # glob.glob('../input/train/Type_2/*.jpg')[:5] +
@@ -207,12 +215,22 @@ class ImageUtils:
         # train_data = roi(pathtrain)
 
         print("\nSaving train images...\n" + self.SEPARATOR)
-        if (self.useAditional):
-            np.save('saved_data/trainExtra' + str(self.imgSize) + '.npy', train_data,
-                    allow_pickle=True, fix_imports=True)
+
+        if (self.useKaggleData):
+            if (self.useAditional):
+                np.save('saved_data/trainExtra' + str(self.imgSize) + 'OrigAspectRatio.npy', train_data,
+                        allow_pickle=True, fix_imports=True)
+            else:
+                np.save('saved_data/train' + str(self.imgSize) + 'OrigAspectRatio.npy', train_data,
+                        allow_pickle=True, fix_imports=True)
+
         else:
-            np.save('saved_data/train' + str(self.imgSize) + '.npy', train_data,
-                    allow_pickle=True, fix_imports=True)
+            if (self.useAditional):
+                np.save('saved_data/trainExtra' + str(self.imgSize) + '.npy', train_data,
+                        allow_pickle=True, fix_imports=True)
+            else:
+                np.save('saved_data/train' + str(self.imgSize) + '.npy', train_data,
+                        allow_pickle=True, fix_imports=True)
 
         print("\nGetting train images labels...\n" + self.SEPARATOR)
         le = LabelEncoder()
@@ -222,6 +240,7 @@ class ImageUtils:
               self.SEPARATOR)  # in case not 1 to 3 order
         print("\nSaving train images labels...\n" + self.SEPARATOR)
 
+
         if (self.useAditional):
             np.save('saved_data/trainExtra_target.npy', train_target,
                     allow_pickle=True, fix_imports=True)
@@ -229,7 +248,11 @@ class ImageUtils:
             np.save('saved_data/train_target.npy', train_target,
                     allow_pickle=True, fix_imports=True)
 
-        test = glob.glob("../data/test_256/*.jpg")
+        if (self.useKaggleData):
+            test = glob.glob("../data/test/*.jpg")
+        else:
+            test = glob.glob("../data/test_256/*.jpg")
+
         print("\nLoading test images...\n" + self.SEPARATOR)
         if system().lower() == "windows":
             test = pd.DataFrame([[p.split('/')[2].split('\\')[1], p]
@@ -244,7 +267,11 @@ class ImageUtils:
         # test_data=roi(pathtest)
         print("\nSaving test images...\n" + self.SEPARATOR)
 
-        np.save('saved_data/test' + str(self.imgSize) + '.npy', test_data,
+        if (self.useKaggleData):
+            np.save('saved_data/test' + str(self.imgSize) + 'OrigAspectRatio.npy', test_data,
+                    allow_pickle=True, fix_imports=True)
+        else:
+            np.save('saved_data/test' + str(self.imgSize) + '.npy', test_data,
                 allow_pickle=True, fix_imports=True)
 
         test_id = test.image.values
