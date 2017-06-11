@@ -3,9 +3,10 @@
 
 from image_utils import ImageUtils
 imgSize = 10
-useAditional = False
+useAditional = True
+keepAspectRatio = False
 
 if __name__ == '__main__':
-    imgUtils = ImageUtils(imgSize, useAditional)
+    imgUtils = ImageUtils(imgSize, useAditional, keepAspectRatio)
 
     imgUtils.dataPreparation()

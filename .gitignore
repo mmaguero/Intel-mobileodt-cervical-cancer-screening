@@ -35,6 +35,7 @@ vignettes/*.pdf
 #data
 data/
 dl-sdk-training-tool-1.0.1131/
+*.npy
 
 #Python
 # Byte-compiled / optimized / DLL files

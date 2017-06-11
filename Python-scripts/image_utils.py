@@ -10,6 +10,7 @@ from PIL import Image
 from matplotlib import colors as pc
 from matplotlib import pyplot as pp
 from sklearn.preprocessing import LabelEncoder
+from math import sqrt
 
 
 # Input data files are available in the "../input/" directory.
@@ -21,9 +22,10 @@ class ImageUtils:
     SEPARATOR = "=============================================================" + \
                 "==================="
 
-    def __init__(self, imgSize, useAditional):
+    def __init__(self, imgSize, useAditional, keepAspectRatio):
         self.imgSize = imgSize
         self.useAditional = useAditional
+        self.keepAspectRatio = keepAspectRatio
 
     def im_multi(self, path):
         try:
@@ -32,6 +34,26 @@ class ImageUtils:
         except:
             print(path)
             return [path, {'size': [0, 0]}]
+
+    def checkResize(self, imgPath):
+        img = cv2.imread(imgPath)
+        cv2.namedWindow("test", cv2.WINDOW_NORMAL)
+        cv2.imshow('test', img)
+
+        # use cv2.resize(img, (64, 64), cv2.INTER_LINEAR)
+        inter_linear = cv2.resize(img, (self.imgSize, self.imgSize),
+                                  cv2.INTER_LINEAR)  # TODO mirar el modo de redimension
+        inter_nearest = cv2.resize(img, (self.imgSize, self.imgSize), cv2.INTER_NEAREST)
+        inter_area = cv2.resize(img, (self.imgSize, self.imgSize), cv2.INTER_AREA)
+        inter_cubic = cv2.resize(img, (self.imgSize, self.imgSize), cv2.INTER_CUBIC)
+        inter_LANCZOS4 = cv2.resize(img, (self.imgSize, self.imgSize), cv2.INTER_LANCZOS4)
+
+        cv2.imshow('INTER_LINEAR', inter_linear)
+        cv2.imshow('inter_nearest', inter_nearest)
+        cv2.imshow('inter_area', inter_area)
+        cv2.imshow('inter_cubic', inter_cubic)
+        cv2.imshow('inter_LANCZOS4', inter_LANCZOS4)
+        cv2.waitKey(0)
 
     #########
     ##########
@@ -44,28 +66,38 @@ class ImageUtils:
     # loop to extract the ROI in the image and create an additional image with only
     # the ROI highlighted
 
+    def roi_single_img(self, path):
+
+        ii = cv2.imread(path)
+        # cv2.imshow('image', ii[:, :, 1])
+        # cv2.waitKey(0)
+        b, g, r = cv2.split(ii)
+        rgb_img = cv2.merge([r, g, b])
+        rgb_img1 = pc.rgb_to_hsv(rgb_img)
+        indices = np.where(rgb_img1[:, :, 0] < 0.7)
+        rgb_img1[:, :, 0][indices] = 0
+        rgb_img1[:, :, 1][indices] = 0
+        rgb_img1[:, :, 2][indices] = 0
+        rgb_img1 = pc.hsv_to_rgb(rgb_img1).astype(np.uint8)
+        return rgb_img1
 
     def roi(self, pathtrain):
+        if (os.path.isdir("../data/train_256_roi/") == False):
+            os.makedirs("../data/train_256_roi/", exist_ok=True)
+
         for typ in ['Type_1', 'Type_2', 'Type_3']:
+            if (os.path.isdir("../data/train_256_roi/"+typ) == False):
+                os.makedirs("../data/train_256_roi/"+typ, exist_ok=True)
             for img in os.listdir(pathtrain + '/' + typ):
                 image = pathtrain + '/' + typ + '/' + img
                 # os.chdir(pathtrain + '/' + typ + '/')
-                ii = cv2.imread(image)
-                # cv2.imshow('image', ii[:, :, 1])
-                # cv2.waitKey(0)
-                b, g, r = cv2.split(ii)
-                rgb_img = cv2.merge([r, g, b])
-                rgb_img1 = pc.rgb_to_hsv(rgb_img)
-                indices = np.where(rgb_img1[:, :, 0] < 0.7)
-                rgb_img1[:, :, 0][indices] = 0
-                rgb_img1[:, :, 1][indices] = 0
-                rgb_img1[:, :, 2][indices] = 0
-                rgb_img1 = pc.hsv_to_rgb(rgb_img1).astype(np.uint8)
-                pp.imsave(fname="train_256_roi/" + img.split('.')[0] + '_trans.jpg',
+                rgb_img1 = self.roi_single_img(image)
+                pp.imsave(fname="../data/train_256_roi/" +typ+"/"+ img.split('.')[0] + '_trans.jpg',
                           arr=rgb_img1)
-        return fname
 
-    def im_stats(self, im_stats_df):
+
+
+    def add_img_size_to_df(self, im_stats_df):
         im_stats_d = {}
         p = Pool(cpu_count())
         ret = p.map(self.im_multi, im_stats_df['path'])
@@ -77,16 +109,58 @@ class ImageUtils:
         p.close()
         return im_stats_df
 
-    def get_im_cv2(self, path):
+    def resize_img(self, path):
         img = cv2.imread(path)
-        # use cv2.resize(img, (64, 64), cv2.INTER_LINEAR)
-        resized = cv2.resize(img, (self.imgSize, self.imgSize), cv2.INTER_LINEAR)  # TODO mirar el modo de redimension
+        # To decrease img size it's better to use a INTER_AREA interpolation according to opencv doc
+        # Reference: http://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#resize
+        resized = cv2.resize(img, (self.imgSize, self.imgSize), cv2.INTER_AREA)  # TODO mirar el modo de redimension
+        return [path, resized]
+
+    def resize_img_keep_aspect_ratio(self, path):
+        '''
+        Reference:
+            - http://www.shervinemami.info/imageTransforms.html
+            - https://stackoverflow.com/a/15589825
+        :param path:
+        :return:
+        '''
+        img = cv2.imread(path)
+
+        actualH = len(img)
+        actualW = len(img[0])
+        aspectRatio = actualW / actualH
+        # Resize as a square
+        newAspectRatio = 1
+
+        if (aspectRatio > newAspectRatio):
+            # crops width to be origHeigh * newAspect
+            tw = (actualH * self.imgSize) / self.imgSize
+            x = (actualW - tw) / 2
+            y = 0
+            roiW = tw
+            roiH = actualH
+        else:
+            # crop height to be origWidth / newAspect
+            th = (actualW * self.imgSize) / self.imgSize
+            x = 0
+            y = (actualH - th) / 2
+            roiW = actualW
+            roiH = th
+
+        # To decrease img size it's better to use a INTER_AREA interpolation according to opencv doc
+        # Reference: http://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#resize
+        resized = cv2.resize(img[int(y):int(roiH), int(x):int(roiW)], (self.imgSize, self.imgSize),
+                             cv2.INTER_AREA)  # TODO mirar el modo de redimension
+
         return [path, resized]
 
     def normalize_image_features(self, paths):
         imf_d = {}
         p = Pool(cpu_count())
-        ret = p.map(self.get_im_cv2, paths)
+        if (self.keepAspectRatio):
+            ret = p.map(self.resize_img_keep_aspect_ratio(), paths)
+        else:
+            ret = p.map(self.resize_img, paths)
         for i in range(len(ret)):
             imf_d[ret[i][0]] = ret[i][1]
         ret = []
@@ -98,10 +172,7 @@ class ImageUtils:
         p.close()
         return fdata
 
-
     def deleteBadImages(self, train):
-
-
 
         train = train[train['size'] != '0 0'].reset_index(
             drop=True)  # remove bad images
@@ -127,7 +198,7 @@ class ImageUtils:
                                    p.split('/')[4], p]
                                   for p in train], columns=['type', 'image', 'path'])
 
-        train = self.im_stats(train)
+        train = self.add_img_size_to_df(train)
         print("\nRemoving bad train images..\n" + self.SEPARATOR)
         train = self.deleteBadImages(train)
 
@@ -180,3 +251,9 @@ class ImageUtils:
         print("\nSaving test images IDs...\n" + self.SEPARATOR)
         np.save('saved_data/test_id.npy', test_id,
                 allow_pickle=True, fix_imports=True)
+
+
+if __name__ == '__main__':
+    iUtils = ImageUtils(imgSize=256, useAditional=False, keepAspectRatio=True)
+    iUtils.roi("../data/train_256")
+    iUtils.checkResize("../data/train/Type_2/301.jpg")

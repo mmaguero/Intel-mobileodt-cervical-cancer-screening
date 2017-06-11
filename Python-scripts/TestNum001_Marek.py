@@ -16,6 +16,7 @@ from keras.utils import plot_model
 from sklearn.model_selection import train_test_split
 
 from image_utils import ImageUtils
+from data_augmentation import DataAugmentation as da
 
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list
@@ -25,8 +26,9 @@ from image_utils import ImageUtils
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 imgSize = 64
-prepareData = False
+prepareData = True
 useAditional = True
+keepAspectRatio = True
 saveNetArchImage = False
 NumEpoch = 10
 batchSize = 32
@@ -71,7 +73,7 @@ def evaluateModel(model, testData, testLabels):
 
 def main():
     if (prepareData):
-        imgUtils = ImageUtils(imgSize, useAditional)
+        imgUtils = ImageUtils(imgSize, useAditional=useAditional, keepAspectRatio=)
         imgUtils.dataPreparation()
 
     K.set_image_data_format('channels_first')
@@ -92,10 +94,9 @@ def main():
         train_data, train_target, test_size=percentTrainForValidation,
         random_state=17)
 
-    datagen = ImageDataGenerator(rotation_range=0.3, zoom_range=0.3)
 
     print("\nMaking data augmentation...\n" + SEPARATOR)
-    datagen.fit(train_data)
+    datagen = da.prepareDataAugmentation(train_data=train_data)
 
     print("\nCreating model...\n" + SEPARATOR)
     if(loadPreviousModel):
