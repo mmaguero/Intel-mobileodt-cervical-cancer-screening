@@ -4,9 +4,10 @@
 from image_utils import ImageUtils
 imgSize = 10
 useAditional = True
-keepAspectRatio = False
+keepAspectRatio = True
+useKaggleData = True
 
 if __name__ == '__main__':
-    imgUtils = ImageUtils(imgSize, useAditional, keepAspectRatio)
+    imgUtils = ImageUtils(imgSize, useAditional, keepAspectRatio, useKaggleData)
 
     imgUtils.dataPreparation()

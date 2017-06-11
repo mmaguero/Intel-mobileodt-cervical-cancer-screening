@@ -25,21 +25,21 @@ from data_augmentation import DataAugmentation as da
 # To Avoid Tensorflow warnings
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-imgSize = 64
+imgSize = 10
 prepareData = True
 useAditional = True
 keepAspectRatio = True
+useKaggleData = False
 saveNetArchImage = False
-NumEpoch = 10
-batchSize = 32
+NumEpoch = 1
+batchSize = 16
 percentTrainForValidation = 0.1
-loadPreviousModel = True
+loadPreviousModel = False
 pathToPreviousModel = "saved_data/scratch_model_ep05_10-06-2017_22-08.hdf5"
-onlyEvaluate = True
+onlyEvaluate = False
 
 SEPARATOR = "=============================================================" + \
             "==================="
-
 
 
 def create_model(opt_='adadelta'):
@@ -71,9 +71,11 @@ def evaluateModel(model, testData, testLabels):
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
 
+
 def main():
     if (prepareData):
-        imgUtils = ImageUtils(imgSize, useAditional=useAditional, keepAspectRatio=)
+        imgUtils = ImageUtils(imgSize, useAditional=useAditional, keepAspectRatio=keepAspectRatio,
+                              useKaggleData=useKaggleData)
         imgUtils.dataPreparation()
 
     K.set_image_data_format('channels_first')
@@ -83,41 +85,47 @@ def main():
 
     print("\nLoading train data...\n" + SEPARATOR)
 
-    if (useAditional):
-        train_data = np.load('saved_data/trainExtra' + str(imgSize) + '.npy')
-        train_target = np.load('saved_data/trainExtra_target.npy')
+    if (keepAspectRatio):
+        if (useAditional):
+            train_data = np.load('saved_data/trainExtra' + str(imgSize) + '_OrigAspectRatio.npy')
+            train_target = np.load('saved_data/trainExtra_target.npy')
+        else:
+            train_data = np.load('saved_data/train' + str(imgSize) + '_OrigAspectRatio.npy')
+            train_target = np.load('saved_data/train_target.npy')
     else:
-        train_data = np.load('saved_data/train' + str(imgSize) + '.npy')
-        train_target = np.load('saved_data/train_target.npy')
+
+        if (useAditional):
+            train_data = np.load('saved_data/trainExtra' + str(imgSize) + '.npy')
+            train_target = np.load('saved_data/trainExtra_target.npy')
+        else:
+            train_data = np.load('saved_data/train' + str(imgSize) + '.npy')
+            train_target = np.load('saved_data/train_target.npy')
 
     x_train, x_val_train, y_train, y_val_train = train_test_split(
         train_data, train_target, test_size=percentTrainForValidation,
         random_state=17)
 
-
     print("\nMaking data augmentation...\n" + SEPARATOR)
     datagen = da.prepareDataAugmentation(train_data=train_data)
 
     print("\nCreating model...\n" + SEPARATOR)
-    if(loadPreviousModel):
+    if (loadPreviousModel):
         model = load_model(pathToPreviousModel)
-        print("Loaded model from: "+pathToPreviousModel)
+        print("Loaded model from: " + pathToPreviousModel)
         model.summary()
     else:
         model = create_model()
 
     print("\nTraining Set shape (num Instances, RGB chanels, width, height): " + str(
-        x_train.shape) + "\nTraining labels: " + str(y_train.shape) + "\nValidating set shape: "+ str(
-        x_val_train.shape)+"\nValidating set labels: "+ str(
-        y_val_train.shape)+"\n" + SEPARATOR)
+        x_train.shape) + "\nTraining labels: " + str(y_train.shape) + "\nValidating set shape: " + str(
+        x_val_train.shape) + "\nValidating set labels: " + str(
+        y_val_train.shape) + "\n" + SEPARATOR)
 
     currentDate = datetime.today()
     timeStamp = currentDate.strftime("%d-%m-%Y_%H-%M")
 
     if (saveNetArchImage):
         plot_model(model, to_file='saved_data/model_' + timeStamp + '.png')
-
-
 
     if (onlyEvaluate):
 
@@ -140,10 +148,12 @@ def main():
 
     print("\nLoading test data...\n" + SEPARATOR)
 
-
-    test_data = np.load('saved_data/test' + str(imgSize) + '.npy')
-    test_id = np.load('saved_data/test_id.npy')
-
+    if (keepAspectRatio):
+        test_data = np.load('saved_data/test' + str(imgSize) + '_OrigAspectRatio.npy')
+        test_id = np.load('saved_data/test_id.npy')
+    else:
+        test_data = np.load('saved_data/test' + str(imgSize) + '.npy')
+        test_id = np.load('saved_data/test_id.npy')
 
     print("\nPredicting with model...\n" + SEPARATOR)
     pred = model.predict_proba(test_data)

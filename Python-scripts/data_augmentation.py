@@ -4,9 +4,8 @@
 from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 from os import path, makedirs
 
+
 class DataAugmentation:
-
-
     @staticmethod
     def dataAugmentationPreview(imagePath, writeDir):
 
@@ -25,8 +24,7 @@ class DataAugmentation:
         x = img_to_array(img)  # this is a Numpy array with shape (3, 150, 150)
         x = x.reshape((1,) + x.shape)  # this is a Numpy array with shape (1, 3, 150, 150)
 
-
-        if(path.isdir(writeDir)==False):
+        if (path.isdir(writeDir) == False):
             makedirs(writeDir, exist_ok=True)
 
         # the .flow() command below generates batches of randomly transformed images
@@ -40,6 +38,11 @@ class DataAugmentation:
 
     @staticmethod
     def prepareDataAugmentation(train_data):
+        '''
+        Reference: https://blog.keras.io/building-powerful-image-classification-models-using-very-little-data.html
+        :param train_data:
+        :return:
+        '''
         datagen = ImageDataGenerator(
             rotation_range=40,
             width_shift_range=0.1,
@@ -56,5 +59,5 @@ class DataAugmentation:
 
 
 if __name__ == '__main__':
-
-    DataAugmentation.dataAugmentationPreview(imagePath="../data/train_256/Type_2/178.jpg", writeDir="../data/augmentationPreview/")
+    DataAugmentation.dataAugmentationPreview(imagePath="../data/train_256/Type_2/178.jpg",
+                                             writeDir="../data/augmentationPreview/")

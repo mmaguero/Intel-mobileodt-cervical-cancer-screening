@@ -26,7 +26,7 @@ class ImageUtils:
         self.imgSize = imgSize
         self.useAditional = useAditional
         self.keepAspectRatio = keepAspectRatio
-        self.useKaggleData=useKaggleData
+        self.useKaggleData = useKaggleData
 
     def im_multi(self, path):
         try:
@@ -87,16 +87,14 @@ class ImageUtils:
             os.makedirs("../data/train_256_roi/", exist_ok=True)
 
         for typ in ['Type_1', 'Type_2', 'Type_3']:
-            if (os.path.isdir("../data/train_256_roi/"+typ) == False):
-                os.makedirs("../data/train_256_roi/"+typ, exist_ok=True)
+            if (os.path.isdir("../data/train_256_roi/" + typ) == False):
+                os.makedirs("../data/train_256_roi/" + typ, exist_ok=True)
             for img in os.listdir(pathtrain + '/' + typ):
                 image = pathtrain + '/' + typ + '/' + img
                 # os.chdir(pathtrain + '/' + typ + '/')
                 rgb_img1 = self.roi_single_img(image)
-                pp.imsave(fname="../data/train_256_roi/" +typ+"/"+ img.split('.')[0] + '_trans.jpg',
+                pp.imsave(fname="../data/train_256_roi/" + typ + "/" + img.split('.')[0] + '_trans.jpg',
                           arr=rgb_img1)
-
-
 
     def add_img_size_to_df(self, im_stats_df):
         im_stats_d = {}
@@ -159,7 +157,7 @@ class ImageUtils:
         imf_d = {}
         p = Pool(cpu_count())
         if (self.keepAspectRatio):
-            ret = p.map(self.resize_img_keep_aspect_ratio(), paths)
+            ret = p.map(self.resize_img_keep_aspect_ratio, paths)
         else:
             ret = p.map(self.resize_img, paths)
         for i in range(len(ret)):
@@ -216,12 +214,12 @@ class ImageUtils:
 
         print("\nSaving train images...\n" + self.SEPARATOR)
 
-        if (self.useKaggleData):
+        if (self.useKaggleData & self.keepAspectRatio):
             if (self.useAditional):
-                np.save('saved_data/trainExtra' + str(self.imgSize) + 'OrigAspectRatio.npy', train_data,
+                np.save('saved_data/trainExtra' + str(self.imgSize) + '_OrigAspectRatio.npy', train_data,
                         allow_pickle=True, fix_imports=True)
             else:
-                np.save('saved_data/train' + str(self.imgSize) + 'OrigAspectRatio.npy', train_data,
+                np.save('saved_data/train' + str(self.imgSize) + '_OrigAspectRatio.npy', train_data,
                         allow_pickle=True, fix_imports=True)
 
         else:
@@ -239,7 +237,6 @@ class ImageUtils:
         print("\nClases: " + str(le.classes_) + "\n" +
               self.SEPARATOR)  # in case not 1 to 3 order
         print("\nSaving train images labels...\n" + self.SEPARATOR)
-
 
         if (self.useAditional):
             np.save('saved_data/trainExtra_target.npy', train_target,
@@ -267,12 +264,12 @@ class ImageUtils:
         # test_data=roi(pathtest)
         print("\nSaving test images...\n" + self.SEPARATOR)
 
-        if (self.useKaggleData):
-            np.save('saved_data/test' + str(self.imgSize) + 'OrigAspectRatio.npy', test_data,
+        if (self.useKaggleData & self.keepAspectRatio):
+            np.save('saved_data/test' + str(self.imgSize) + '_OrigAspectRatio.npy', test_data,
                     allow_pickle=True, fix_imports=True)
         else:
             np.save('saved_data/test' + str(self.imgSize) + '.npy', test_data,
-                allow_pickle=True, fix_imports=True)
+                    allow_pickle=True, fix_imports=True)
 
         test_id = test.image.values
         print("\nSaving test images IDs...\n" + self.SEPARATOR)
