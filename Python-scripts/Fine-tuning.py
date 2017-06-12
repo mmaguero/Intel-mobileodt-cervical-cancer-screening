@@ -41,7 +41,7 @@ from data_augmentation import DataAugmentation as da
 # To Avoid Tensorflow warnings
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-imgSize = 64
+imgSize = 150
 prepareData = False
 useAditional = True
 keepAspectRatio = False
@@ -49,11 +49,11 @@ useKaggleData = False
 saveNetArchImage = True
 NumEpoch = 1
 batchSize = 32
-percentTrainForValidation = 0.2
+percentTrainForValidation = 0.7
 loadPreviousModel = False
 pathToPreviousModel = "saved_data/scratch_model_ep00_11-06-2017_11-56.hdf5"
 onlyEvaluate = False
-ftModel = "VGG16"  # IV3/VGG16/ = InceptionV3[Min.139|Def.299]/VGG16[Min.48|Def.224]
+ftModel = "IV3"  # IV3/VGG16/ = InceptionV3[Min.139|Def.299]/VGG16[Min.48|Def.224]
 ftApply = True
 
 SEPARATOR = "=============================================================" + \
@@ -61,6 +61,7 @@ SEPARATOR = "=============================================================" + \
 useCustomPretrainedModels = True
 
 if(useCustomPretrainedModels):
+
     from pretrained import VGG16
 else:
     from keras.applications.vgg16 import VGG16
@@ -78,27 +79,27 @@ def create_pretrained_model(baseModel, fineTunning, opt_='adadelta'):
     else:
         print("Error: modelo no admitido")
         exit(1)
+
+        '''
     # https://github.com/flyyufelix/cnn_finetune/blob/master/vgg16.py
     if (fineTunning):
         # Truncate and replace softmax layer for transfer learning
         myModel.layers.pop()
         myModel.outputs = [myModel.layers[-1].output]
         myModel.layers[-1].outbound_nodes = []
-
+'''
     x = Flatten()(myModel.output)
+    x = Dense(256, activation='relu')(x)
     output = Dense(3, activation='softmax')(x)
     model = Model(inputs=myModel.input, outputs=output)
 
     for i, layer in enumerate(myModel.layers):
         print(i, layer.name)
 
-    if (fineTunning):
-        # Set the first layers to non-trainable (weights will not be updated)
-        for layer in myModel.layers[:25]:
-            layer.trainable = False
-    else:
-        for layer in myModel.layers:
-            layer.trainable = False
+
+    for layer in myModel.layers:
+        layer.trainable = False
+
 
     model.compile(optimizer=opt_,
                   loss='sparse_categorical_crossentropy', metrics=['accuracy'])
@@ -183,13 +184,47 @@ def main():
         checkPoint = ModelCheckpoint(
             "saved_data/" + ftModel + "_ep{epoch:02d}_" + timeStamp + ".hdf5",
             save_best_only=True)
-        # tfBoard = TensorBoard("saved_data/log", histogram_freq=2, write_graph=True, write_images=True,
-        # embeddings_freq=2)
-        model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
-                                         shuffle=True),
-                            steps_per_epoch=len(x_train), epochs=NumEpoch,
-                            validation_data=(x_val_train, y_val_train),
-                            callbacks=[checkPoint])#, verbose=1)
+
+        if ftApply == False:
+            model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
+                                             shuffle=True),
+                                steps_per_epoch=len(x_train), epochs=NumEpoch,
+                                validation_data=(x_val_train, y_val_train),
+                                callbacks=[checkPoint])#, verbose=1)
+        else:
+            model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
+                                             shuffle=True),
+                                steps_per_epoch=len(x_train), epochs=NumEpoch,
+                                validation_data=(x_val_train, y_val_train))  # , verbose=1)
+
+        if (ftApply):
+            # Set the first layers to non-trainable (weights will not be updated)
+            # Set the last block to trainable
+            print("\nFine-tunning model...\n" + SEPARATOR)
+            if (ftModel == "VGG16"):
+                for layer in model.layers[:15]:
+                    layer.trainable = False
+                for layer in model.layers[15:]:
+                    layer.trainable = True
+            elif (ftModel =="IV3"):
+                for layer in model.layers[:277]:
+                    layer.trainable = False
+                for layer in model.layers[277:]:
+                    layer.trainable = True
+
+            # compile the model with a SGD/momentum optimizer
+            # and a very slow learning rate.
+            model.compile(loss='sparse_categorical_crossentropy',
+                          optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
+                          metrics=['accuracy'])
+
+            model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
+                                             shuffle=True),
+                                steps_per_epoch=len(x_train), epochs=NumEpoch,
+                                validation_data=(x_val_train, y_val_train),
+                                callbacks=[checkPoint])  # , verbose=1)
+
+
 
     print("\nLoading test data...\n" + SEPARATOR)
 
@@ -201,7 +236,6 @@ def main():
         test_id = np.load('saved_data/test_id.npy')
 
     print("\nPredicting with model...\n" + SEPARATOR)
-    # pred = model.predict_proba(test_data)
     pred = model.predict(test_data, verbose=1)
 
     df = pd.DataFrame(pred, columns=['Type_1', 'Type_2', 'Type_3'])
