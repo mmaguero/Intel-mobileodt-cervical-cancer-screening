@@ -22,11 +22,13 @@ from platform import system
 from matplotlib import pyplot as pp
 from matplotlib import colors as pc
 from keras.wrappers.scikit_learn import KerasClassifier
-from keras.applications.vgg16 import VGG16
 from keras.applications.inception_v3 import InceptionV3
 from keras.applications.resnet50 import ResNet50
+from keras.applications.vgg16 import VGG16
+
 from keras.models import Sequential, load_model, Model
 from keras.layers.core import Dense, Dropout, Flatten, Activation
+from keras.layers import Input
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras import optimizers
 from keras.callbacks import ModelCheckpoint, TensorBoard
@@ -34,101 +36,99 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras import backend as K
 from keras.utils import plot_model
 
+from image_utils import ImageUtils
+from data_augmentation import DataAugmentation as da
+
 # To Avoid Tensorflow warnings
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 imgSize = 150
 prepareData = False
+useAditional = True
+keepAspectRatio = False
+useKaggleData = False
 saveNetArchImage = False
 NumEpoch = 1
 batchSize = 1
 percentTrainForValidation = 0.9975
 loadPreviousModel = False
 pathToPreviousModel = "saved_data/scratch_model_ep00_11-06-2017_11-56.hdf5"
+onlyEvaluate = False
 ftModel = "VGG16" # IV3/VGG16/RN50 = InceptionV3[Min.139|Def.299]/VGG16[Min.48|Def.224]/ResNet50[Min.197|Rec.224]
 
 SEPARATOR = "=============================================================" + \
             "==================="
 
-
-def im_multi(path):
-    try:
-        im_stats_im_ = Image.open(path)
-        return [path, {'size': im_stats_im_.size}]
-    except:
-        print(path)
-        return [path, {'size': [0, 0]}]
-
-
-#########
-##########
 '''
-types = ['Type_1','Type_2','Type_3']
-pathtrain = "../input/train"
-pathtest='../input/test'
+def VGG16(weights='imagenet', include_top=False, input_shape=None):
+    img_input = Input(shape=input_shape)
+    inputs = img_input
+    # Block 1
+    x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1')(img_input)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(x)
+
+    # Block 2
+    x = Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv1')(x)
+    x = Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv2')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool')(x)
+
+    # Block 3
+    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv1')(x)
+    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv2')(x)
+    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')(x)
+
+    # Block 4
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x)
+
+    # Block 5
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
+
+    # Create model.
+    model = Model(inputs, x, name='vgg16')
+
+    # load weights
+    if weights == 'imagenet':
+        if include_top:
+            weights_path = get_file('vgg16_weights_tf_dim_ordering_tf_kernels.h5',
+                                    WEIGHTS_PATH,
+                                    cache_subdir='models')
+        else:
+            weights_path = get_file('vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5',
+                                    WEIGHTS_PATH_NO_TOP,
+                                    cache_subdir='models')
+        model.load_weights(weights_path)
+        if K.backend() == 'theano':
+            layer_utils.convert_all_kernels_in_model(model)
+
+        if K.image_data_format() == 'channels_first':
+            if include_top:
+                maxpool = model.get_layer(name='block5_pool')
+                shape = maxpool.output_shape[1:]
+                dense = model.get_layer(name='fc1')
+                layer_utils.convert_dense_weights_data_format(dense, shape, 'channels_first')
+
+            if K.backend() == 'tensorflow':
+                warnings.warn('You are using the TensorFlow backend, yet you '
+                              'are using the Theano '
+                              'image data format convention '
+                              '(`image_data_format="channels_first"`). '
+                              'For best performance, set '
+                              '`image_data_format="channels_last"` in '
+                              'your Keras config '
+                              'at ~/.keras/keras.json.')
+
+
+    return model
+
 '''
-
-
-# loop to extract the ROI in the image and create an additional image with only
-# the ROI highlighted
-
-
-def roi(pathtrain):
-    for typ in ['Type_1', 'Type_2', 'Type_3']:
-        for img in os.listdir(pathtrain + '/' + typ):
-            image = pathtrain + '/' + typ + '/' + img
-            # os.chdir(pathtrain + '/' + typ + '/')
-            ii = cv2.imread(image)
-            # cv2.imshow('image', ii[:, :, 1])
-            # cv2.waitKey(0)
-            b, g, r = cv2.split(ii)
-            rgb_img = cv2.merge([r, g, b])
-            rgb_img1 = pc.rgb_to_hsv(rgb_img)
-            indices = np.where(rgb_img1[:, :, 0] < 0.7)
-            rgb_img1[:, :, 0][indices] = 0
-            rgb_img1[:, :, 1][indices] = 0
-            rgb_img1[:, :, 2][indices] = 0
-            rgb_img1 = pc.hsv_to_rgb(rgb_img1).astype(np.uint8)
-            pp.imsave(fname="train_256_roi/" + img.split('.')[0] + '_trans.jpg',
-                      arr=rgb_img1)
-    return fname
-
-
-def im_stats(im_stats_df):
-    im_stats_d = {}
-    p = Pool(cpu_count())
-    ret = p.map(im_multi, im_stats_df['path'])
-    for i in range(len(ret)):
-        im_stats_d[ret[i][0]] = ret[i][1]
-    im_stats_df['size'] = im_stats_df['path'].map(
-        lambda x: ' '.join(str(s) for s in im_stats_d[x]['size']))
-
-    p.close()
-    return im_stats_df
-
-
-def get_im_cv2(path):
-    img = cv2.imread(path)
-    # use cv2.resize(img, (64, 64), cv2.INTER_LINEAR)
-    resized = cv2.resize(img, (imgSize, imgSize), cv2.INTER_LINEAR)
-    return [path, resized]
-
-
-def normalize_image_features(paths):
-    imf_d = {}
-    p = Pool(cpu_count())
-    ret = p.map(get_im_cv2, paths)
-    for i in range(len(ret)):
-        imf_d[ret[i][0]] = ret[i][1]
-    ret = []
-    fdata = [imf_d[f] for f in paths]
-    fdata = np.array(fdata, dtype=np.uint8)
-    fdata = fdata.transpose((0, 3, 1, 2))
-    fdata = fdata.astype('float32')
-    fdata = fdata / 255
-    p.close()
-    return fdata
-
 # https://keras.io/applications/
 # http://www.pyimagesearch.com/2017/03/20/imagenet-vggnet-resnet-inception-xception-keras/ 
 # https://pastebin.com/CWZBeDEb
@@ -155,73 +155,17 @@ def create_pretrained_model(baseModel, opt_='adadelta'):
     return model
 
 
-def dataPreparation():
-    train = glob.glob("../data/train_256_extra/**/*.jpg")
-
-    # train=glob.glob('../input/train/Type_1/*.jpg')[:5] +
-    # glob.glob('../input/train/Type_2/*.jpg')[:5] +
-    # glob.glob('../input/train/Type_3/*.jpg')[:5]
-    print("\nLoading train images...\n" + SEPARATOR)
-
-    if(system().lower() == "windows"):
-        train = pd.DataFrame([[p.split('/')[2].split('\\')[1],
-                           p.split('/')[2].split('\\')[2], p]
-                          for p in train], columns=['type', 'image', 'path'])
-    elif(system().lower() == "linux"):
-        train = pd.DataFrame([[p.split('/')[3],
-                           p.split('/')[4], p]
-                          for p in train], columns=['type', 'image', 'path'])
-
-    train = im_stats(train)
-    print("\nRemoving bad train images..\n" + SEPARATOR)
-    train = train[train['size'] != '0 0'].reset_index(
-        drop=True)  # remove bad images
-
-    print("\nNormalizing train images...\n" + SEPARATOR)
-    train_data = normalize_image_features(train['path'])
-    # train_data = roi(pathtrain)
-
-    print("\nSaving train images...\n" + SEPARATOR)
-    np.save('saved_data/train.npy', train_data,
-            allow_pickle=True, fix_imports=True)
-
-    print("\nGetting train images labels...\n" + SEPARATOR)
-    le = LabelEncoder()
-    train_target = le.fit_transform(train['type'].values)
-    # FIXME da error
-    print("\nClases: " + le.classes_ + "\n" +
-          SEPARATOR)  # in case not 1 to 3 order
-    print("\nSaving train images labels...\n" + SEPARATOR)
-    np.save('saved_data/train_target.npy', train_target,
-            allow_pickle=True, fix_imports=True)
-
-    test = glob.glob("../data/test_256/*.jpg")
-    print("\nLoading test images...\n" + SEPARATOR)
-    if system().lower() == "windows":
-        test = pd.DataFrame([[p.split('/')[2].split('\\')[1], p]
-                         for p in test], columns=['image', 'path'])
-    elif(system().lower() == "linux"):
-        test = pd.DataFrame([[p.split('/')[3], p]
-                         for p in test], columns=['image', 'path'])
-        
-    # [::20] #limit for Kaggle Demo
-
-    print("\nNormalizing test images...\n" + SEPARATOR)
-    test_data = normalize_image_features(test['path'])
-    # test_data=roi(pathtest)
-    print("\nSaving test images...\n" + SEPARATOR)
-    np.save('saved_data/test.npy', test_data,
-            allow_pickle=True, fix_imports=True)
-
-    test_id = test.image.values
-    print("\nSaving test images IDs...\n" + SEPARATOR)
-    np.save('saved_data/test_id.npy', test_id,
-            allow_pickle=True, fix_imports=True)
+def evaluateModel(model, testData, testLabels):
+    score = model.evaluate(testData, testLabels, verbose=0)
+    print('Test loss:', score[0])
+    print('Test accuracy:', score[1])
 
 
 def main():
     if (prepareData):
-        dataPreparation()
+        imgUtils = ImageUtils(imgSize, useAditional=useAditional, keepAspectRatio=keepAspectRatio,
+                              useKaggleData=useKaggleData)
+        imgUtils.dataPreparation()()
 
     K.set_image_data_format('channels_first')
     K.set_floatx('float32')
@@ -229,8 +173,21 @@ def main():
     np.random.seed(17)
 
     print("\nLoading train data...\n" + SEPARATOR)
-    train_data = np.load('saved_data/trainExtra150.npy')
-    train_target = np.load('saved_data/trainExtra_target.npy')
+    if (keepAspectRatio):
+        if (useAditional):
+            train_data = np.load('saved_data/trainExtra' + str(imgSize) + '_OrigAspectRatio.npy')
+            train_target = np.load('saved_data/trainExtra_target.npy')
+        else:
+            train_data = np.load('saved_data/train' + str(imgSize) + '_OrigAspectRatio.npy')
+            train_target = np.load('saved_data/train_target.npy')
+    else:
+
+        if (useAditional):
+            train_data = np.load('saved_data/trainExtra' + str(imgSize) + '.npy')
+            train_target = np.load('saved_data/trainExtra_target.npy')
+        else:
+            train_data = np.load('saved_data/train' + str(imgSize) + '.npy')
+            train_target = np.load('saved_data/train_target.npy')
 
     x_train, x_val_train, y_train, y_val_train = train_test_split(
         train_data, train_target, test_size=percentTrainForValidation,
@@ -239,18 +196,16 @@ def main():
     datagen = ImageDataGenerator(rotation_range=0.3, zoom_range=0.3)
 
     print("\nMaking data augmentation...\n" + SEPARATOR)
-    datagen.fit(train_data)
+    datagen = da.prepareDataAugmentation(train_data=train_data)
 
     print("\nCreating model...\n" + SEPARATOR)
     if (loadPreviousModel):
         model = load_model(pathToPreviousModel)
         print("Loaded model from: " + pathToPreviousModel)
-        model.summary()
     else:
         model = create_pretrained_model(ftModel)
 
-    for i, layer in enumerate(model.layers):
-        print(i, layer.name)
+    model.summary()
 
     print("\nTraining Set shape (num Instances, RGB chanels, width, height): " + str(
         x_train.shape) + "\nTraining labels: " + str(y_train.shape) + "\n" + SEPARATOR)
@@ -261,21 +216,32 @@ def main():
     if (saveNetArchImage):
         plot_model(model, to_file='saved_data/model_' + timeStamp + '.png')
 
-    print("\nFitting model...\n" + SEPARATOR)
-    checkPoint = ModelCheckpoint(
-        "saved_data/scratch_model_ep{epoch:02d}_" + timeStamp + ".hdf5",
-        save_best_only=True)
-    # tfBoard = TensorBoard("saved_data/log", histogram_freq=2, write_graph=True, write_images=True,
-    # embeddings_freq=2)
-    model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
-                                     shuffle=True),
-                        steps_per_epoch=len(x_train), epochs=NumEpoch,
-                        validation_data=(x_val_train, y_val_train),
-                        callbacks=[checkPoint], verbose=1)
+    if (onlyEvaluate):
 
-    test_data = np.load('saved_data/test150.npy')
-    test_id = np.load('saved_data/test_id.npy')
-    print("\nLoaded test data...\n" + SEPARATOR)
+        print("\nEvaluating Model...\n" + SEPARATOR)
+        evaluateModel(model, x_val_train, y_val_train)
+
+    else:
+        print("\nFitting model...\n" + SEPARATOR)
+        checkPoint = ModelCheckpoint(
+            "saved_data/scratch_model_ep{epoch:02d}_" + timeStamp + ".hdf5",
+            save_best_only=True)
+        # tfBoard = TensorBoard("saved_data/log", histogram_freq=2, write_graph=True, write_images=True,
+        # embeddings_freq=2)
+        model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
+                                         shuffle=True),
+                            steps_per_epoch=len(x_train), epochs=NumEpoch,
+                            validation_data=(x_val_train, y_val_train),
+                            callbacks=[checkPoint], verbose=1)
+
+    print("\nLoading test data...\n" + SEPARATOR)
+
+    if (keepAspectRatio):
+        test_data = np.load('saved_data/test' + str(imgSize) + '_OrigAspectRatio.npy')
+        test_id = np.load('saved_data/test_id.npy')
+    else:
+        test_data = np.load('saved_data/test' + str(imgSize) + '.npy')
+        test_id = np.load('saved_data/test_id.npy')
 
     print("\nPredicting with model...\n" + SEPARATOR)
     #pred = model.predict_proba(test_data)
@@ -284,7 +250,7 @@ def main():
     df = pd.DataFrame(pred, columns=['Type_1', 'Type_2', 'Type_3'])
     df['image_name'] = test_id
 
-    df.to_csv("../submission/Test001_Marek_" + timeStamp + ".csv", index=False)
+    df.to_csv("../submission/Fine_Tuning_" + timeStamp + ".csv", index=False)
 
 
 if __name__ == '__main__':
