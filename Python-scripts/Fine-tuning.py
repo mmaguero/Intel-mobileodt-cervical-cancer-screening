@@ -25,7 +25,7 @@ from keras.wrappers.scikit_learn import KerasClassifier
 from keras.applications.inception_v3 import InceptionV3
 from keras.applications.resnet50 import ResNet50
 from keras.applications.vgg16 import VGG16
-
+from keras.applications.vgg16 import preprocess_input
 from keras.models import Sequential, load_model, Model
 from keras.layers.core import Dense, Dropout, Flatten, Activation
 from keras.layers import Input
@@ -47,14 +47,15 @@ prepareData = False
 useAditional = True
 keepAspectRatio = False
 useKaggleData = False
-saveNetArchImage = False
+saveNetArchImage = True
 NumEpoch = 1
-batchSize = 1
-percentTrainForValidation = 0.9975
+batchSize = 16
+percentTrainForValidation = 0.3
 loadPreviousModel = False
 pathToPreviousModel = "saved_data/scratch_model_ep00_11-06-2017_11-56.hdf5"
 onlyEvaluate = False
-ftModel = "VGG16" # IV3/VGG16/RN50 = InceptionV3[Min.139|Def.299]/VGG16[Min.48|Def.224]/ResNet50[Min.197|Rec.224]
+ftModel = "IV3" # IV3/VGG16/RN50 = InceptionV3[Min.139|Def.299]/VGG16[Min.48|Def.224]/ResNet50[Min.197|Rec.224]
+ftApply = False
 
 SEPARATOR = "=============================================================" + \
             "==================="
@@ -133,7 +134,7 @@ def VGG16(weights='imagenet', include_top=False, input_shape=None):
 # http://www.pyimagesearch.com/2017/03/20/imagenet-vggnet-resnet-inception-xception-keras/ 
 # https://pastebin.com/CWZBeDEb
 # Theano como backend: necesita estar a la ultima version (tambien Keras), tomar de los repos de GITHUB
-def create_pretrained_model(baseModel, opt_='adadelta'):
+def create_pretrained_model(baseModel, fineTunning, opt_='adadelta'):
     if (baseModel == "VGG16"):
         myModel = VGG16(weights='imagenet', include_top=False, input_shape=(3, imgSize, imgSize))
     elif (baseModel == "IV3"):
@@ -141,16 +142,34 @@ def create_pretrained_model(baseModel, opt_='adadelta'):
     elif (baseModel == "RN50"):
         myModel = ResNet50(weights='imagenet', include_top=False, input_shape=(3, imgSize, imgSize))
 
+    # https://github.com/flyyufelix/cnn_finetune/blob/master/vgg16.py
+    if (fineTunning):
+        # Truncate and replace softmax layer for transfer learning
+        myModel.layers.pop()
+        myModel.outputs = [myModel.layers[-1].output]
+        myModel.layers[-1].outbound_nodes = []
+
     x = Flatten()(myModel.output)
     output = Dense(3, activation='softmax')(x)
     model = Model(inputs=myModel.input, outputs=output)
 
-    for layer in myModel.layers:
-        layer.trainable = False
+    if (fineTunning):
+        #Set the first layers to non-trainable (weights will not be updated)
+        for layer in myModel.layers[:25]:
+            layer.trainable = False
+    else:
+        for layer in myModel.layers:
+            layer.trainable = False
 
     model.compile(optimizer=opt_,
                   loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    model.summary()
+
+    return model
+
+
+def create_fine_tunning_model(opt_='adadelta'):
+
+    model = VGG16(weights='imagenet', include_top=False, input_shape=(3, imgSize, imgSize))
 
     return model
 
@@ -203,7 +222,7 @@ def main():
         model = load_model(pathToPreviousModel)
         print("Loaded model from: " + pathToPreviousModel)
     else:
-        model = create_pretrained_model(ftModel)
+        model = create_pretrained_model(ftModel, ftApply)
 
     model.summary()
 
@@ -245,7 +264,7 @@ def main():
 
     print("\nPredicting with model...\n" + SEPARATOR)
     #pred = model.predict_proba(test_data)
-    pred = model.predict(test_data)
+    pred = model.predict(test_data, verbose=1)
 
     df = pd.DataFrame(pred, columns=['Type_1', 'Type_2', 'Type_3'])
     df['image_name'] = test_id
