@@ -15,7 +15,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import plot_model
 from sklearn.model_selection import train_test_split
 
-from image_utils import ImageUtils
+#from image_utils import ImageUtils
 from data_augmentation import DataAugmentation as da
 
 # Input data files are available in the "../input/" directory.
@@ -25,10 +25,10 @@ from data_augmentation import DataAugmentation as da
 # To Avoid Tensorflow warnings
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-imgSize = 10
-prepareData = True
+imgSize = 64
+prepareData = False
 useAditional = True
-keepAspectRatio = True
+keepAspectRatio = False
 useKaggleData = False
 saveNetArchImage = False
 NumEpoch = 1
@@ -74,9 +74,11 @@ def evaluateModel(model, testData, testLabels):
 
 def main():
     if (prepareData):
+        '''
         imgUtils = ImageUtils(imgSize, useAditional=useAditional, keepAspectRatio=keepAspectRatio,
                               useKaggleData=useKaggleData)
         imgUtils.dataPreparation()
+        '''
 
     K.set_image_data_format('channels_first')
     K.set_floatx('float32')
