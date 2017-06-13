@@ -14,11 +14,11 @@ prepareData = False
 useAditional = True
 keepAspectRatio = True
 useKaggleData = False
-batchSize = 32
-percentTrainForValidation = 0.2
+batchSize = 128
+percentTrainForValidation = 0.3
 useCustomPretrainedModels = True
 RDM = 17
-dataAugmentation = True
+dataAugmentation = False
 
 SEPARATOR = "=============================================================" + \
             "==================="
@@ -96,8 +96,9 @@ def create_feature_extractor():
         np.save('saved_data/feaExt_Train' + str(imgSize) + '.npy', X_train,
                     allow_pickle=True, fix_imports=True)
         np.save('saved_data/feaExt_Valid' + str(imgSize) + '.npy', X_valid,
-                    allow_pickle=True, fix_imports=True)  
+                    allow_pickle=True, fix_imports=True) 
 
+    return features_train
     
 if __name__ == '__main__':
-    create_feature_extractor()
+    feature = create_feature_extractor()
