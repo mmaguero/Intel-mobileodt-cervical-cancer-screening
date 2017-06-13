@@ -7,10 +7,12 @@
 - [x] Probar más data augmentatión en Keras usando [ImagePreprocessing](https://keras.io/preprocessing/image/#imagedatagenerator) **@AythaE**
 - [ ] Comparar arquitectura red buena preentrenada con inicialización aleatoria
 - [ ] Probar learning from scratch con mas data augmentation e imagenes mejor redimensionadas
-- [ ] Lanzar modelo con una red pre-entrenada
-- [ ] Lanzar modelo con fine-tuning
-- [ ] Compara fine-tunning vgg e inception
+- [ ] Lanzar modelo con una red pre-entrenada (inception v3)
+- [x] Lanzar modelo con fine-tuning
+- [x] Compara fine-tunning vgg e inception. Demasiado computo
 - [ ] Extraer caracteristicas con red preentrenada
 - [ ] Extraer características con fine-tunning
-- [ ] Estudiar OVO y OVA
+- [ ] Mirar OVO
+- [x] Aplicar OVA
+- [ ] Mirar cross validation
 - [ ] Mirar como crear ensemble de modelos

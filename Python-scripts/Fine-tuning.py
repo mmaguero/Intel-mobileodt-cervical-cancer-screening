@@ -1,66 +1,50 @@
 # Test num 001. Marek
 # <https://www.kaggle.com/marek3000/test-num-001/code/>
 
+# Any results you write to the current directory are saved as output.
+from datetime import datetime
+
 import numpy as np  # linear algebra
 import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
+from keras import backend as K
+from keras import optimizers
+from keras.applications.inception_v3 import InceptionV3
+from keras.callbacks import ModelCheckpoint
+from keras.layers.core import Dense, Flatten
+from keras.models import load_model, Model
+from keras.utils import plot_model
+from sklearn.model_selection import train_test_split
+
+from data_augmentation import DataAugmentation as da
+from image_utils import ImageUtils
 
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list
 # the files in the input directory
 
-
-# Any results you write to the current directory are saved as output.
-import glob
-import cv2
-import os
-from PIL import ImageFilter, ImageStat, Image, ImageDraw
-from datetime import datetime
-from multiprocessing import Pool, cpu_count
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-from platform import system
-from matplotlib import pyplot as pp
-from matplotlib import colors as pc
-from keras.wrappers.scikit_learn import KerasClassifier
-
-from keras.applications.vgg16 import preprocess_input
-from keras.models import Sequential, load_model, Model
-from keras.layers.core import Dense, Dropout, Flatten, Activation
-from keras.layers import Input
-from keras.layers.convolutional import Conv2D, MaxPooling2D
-from keras import optimizers
-from keras.callbacks import ModelCheckpoint, TensorBoard
-from keras.preprocessing.image import ImageDataGenerator
-from keras import backend as K
-from keras.utils import plot_model
-from keras.applications.inception_v3 import InceptionV3
-
-from image_utils import ImageUtils
-from data_augmentation import DataAugmentation as da
-
 # To Avoid Tensorflow warnings
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-imgSize = 150
+imgSize = 64
 prepareData = False
 useAditional = True
-keepAspectRatio = False
+keepAspectRatio = True
 useKaggleData = False
-saveNetArchImage = True
-NumEpoch = 1
-batchSize = 32
-percentTrainForValidation = 0.7
-loadPreviousModel = False
-pathToPreviousModel = "saved_data/scratch_model_ep00_11-06-2017_11-56.hdf5"
+saveNetArchImage = False
+NumEpoch = 3
+batchSize = 16
+percentTrainForValidation = 0.25
+loadPreviousModel = True
+pathToPreviousModel = "saved_data/VGG16_fine-tunned_ep00_13-06-2017_12-47.hdf5"
 onlyEvaluate = False
-ftModel = "IV3"  # IV3/VGG16/ = InceptionV3[Min.139|Def.299]/VGG16[Min.48|Def.224]
+ftModel = "VGG16"  # IV3/VGG16/ = InceptionV3[Min.139|Def.299]/VGG16[Min.48|Def.224]
 ftApply = True
 
 SEPARATOR = "=============================================================" + \
             "==================="
 useCustomPretrainedModels = True
 
-if(useCustomPretrainedModels):
+if (useCustomPretrainedModels):
 
     from pretrained import VGG16
 else:
@@ -71,7 +55,7 @@ else:
 # http://www.pyimagesearch.com/2017/03/20/imagenet-vggnet-resnet-inception-xception-keras/ 
 # https://pastebin.com/CWZBeDEb
 # Theano como backend: necesita estar a la ultima version (tambien Keras), tomar de los repos de GITHUB
-def create_pretrained_model(baseModel, fineTunning, opt_='adadelta'):
+def create_pretrained_model(baseModel, fineTunning, opt_='rmsprop'):
     if (baseModel == "VGG16"):
         myModel = VGG16(weights='imagenet', include_top=False, input_shape=(3, imgSize, imgSize))
     elif (baseModel == "IV3"):
@@ -88,27 +72,16 @@ def create_pretrained_model(baseModel, fineTunning, opt_='adadelta'):
         myModel.outputs = [myModel.layers[-1].output]
         myModel.layers[-1].outbound_nodes = []
 '''
+    for layer in myModel.layers:
+        layer.trainable = False
+
     x = Flatten()(myModel.output)
     x = Dense(256, activation='relu')(x)
     output = Dense(3, activation='softmax')(x)
     model = Model(inputs=myModel.input, outputs=output)
 
-    for i, layer in enumerate(myModel.layers):
-        print(i, layer.name)
-
-
-    for layer in myModel.layers:
-        layer.trainable = False
-
-
     model.compile(optimizer=opt_,
                   loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-
-    return model
-
-
-def create_fine_tunning_model(opt_='adadelta'):
-    model = VGG16(weights='imagenet', include_top=False, input_shape=(3, imgSize, imgSize))
 
     return model
 
@@ -172,7 +145,7 @@ def main():
     timeStamp = currentDate.strftime("%d-%m-%Y_%H-%M")
 
     if (saveNetArchImage):
-        plot_model(model, to_file='saved_data/'+ftModel+'_' + timeStamp + '.png')
+        plot_model(model, to_file='saved_data/' + ftModel + '_' + timeStamp + '.png')
 
     if (onlyEvaluate):
 
@@ -185,28 +158,24 @@ def main():
             "saved_data/" + ftModel + "_ep{epoch:02d}_" + timeStamp + ".hdf5",
             save_best_only=True)
 
-        if ftApply == False:
-            model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
-                                             shuffle=True),
-                                steps_per_epoch=len(x_train), epochs=NumEpoch,
-                                validation_data=(x_val_train, y_val_train),
-                                callbacks=[checkPoint])#, verbose=1)
-        else:
-            model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
-                                             shuffle=True),
-                                steps_per_epoch=len(x_train), epochs=NumEpoch,
-                                validation_data=(x_val_train, y_val_train))  # , verbose=1)
-
         if (ftApply):
+            if (loadPreviousModel == False):
+                model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
+                                                 shuffle=True),
+                                    steps_per_epoch=len(x_train), epochs=NumEpoch,
+                                    validation_data=(x_val_train, y_val_train),
+                                    callbacks=[checkPoint])  # , verbose=1)
+
+            print("\nFine-tunning model...\n" + SEPARATOR)
+
             # Set the first layers to non-trainable (weights will not be updated)
             # Set the last block to trainable
-            print("\nFine-tunning model...\n" + SEPARATOR)
             if (ftModel == "VGG16"):
                 for layer in model.layers[:15]:
                     layer.trainable = False
                 for layer in model.layers[15:]:
                     layer.trainable = True
-            elif (ftModel =="IV3"):
+            elif (ftModel == "IV3"):
                 for layer in model.layers[:277]:
                     layer.trainable = False
                 for layer in model.layers[277:]:
@@ -218,13 +187,22 @@ def main():
                           optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
                           metrics=['accuracy'])
 
+            timeStamp = datetime.today().strftime("%d-%m-%Y_%H-%M")
+            checkPoint = ModelCheckpoint(
+                "saved_data/" + ftModel + "_fine-tunned_ep{epoch:02d}_" + timeStamp + ".hdf5",
+                save_best_only=True)
+            model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
+                                             shuffle=True),
+                                steps_per_epoch=len(x_train), epochs=NumEpoch * 2,
+                                validation_data=(x_val_train, y_val_train),
+                                callbacks=[checkPoint])  # , verbose=1)
+
+        else:
             model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
                                              shuffle=True),
                                 steps_per_epoch=len(x_train), epochs=NumEpoch,
                                 validation_data=(x_val_train, y_val_train),
                                 callbacks=[checkPoint])  # , verbose=1)
-
-
 
     print("\nLoading test data...\n" + SEPARATOR)
 
