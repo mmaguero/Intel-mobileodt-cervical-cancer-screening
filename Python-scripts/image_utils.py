@@ -276,6 +276,123 @@ class ImageUtils:
         np.save('saved_data/test_id.npy', test_id,
                 allow_pickle=True, fix_imports=True)
 
+    def dataPreparationOVA(self):
+        if (self.useKaggleData):
+            if (self.useAditional):
+                train = glob.glob("../data/train_extra/**/*.jpg")
+            else:
+                train = glob.glob("../data/train/**/*.jpg")
+
+        else:
+            if (self.useAditional):
+                train = glob.glob("../data/train_256_extra/**/*.jpg")
+            else:
+                train = glob.glob("../data/train_256/**/*.jpg")
+
+        # train=glob.glob('../input/train/Type_1/*.jpg')[:5] +
+        # glob.glob('../input/train/Type_2/*.jpg')[:5] +
+        # glob.glob('../input/train/Type_3/*.jpg')[:5]
+        print("\nLoading train images...\n" + self.SEPARATOR)
+
+        if (system().lower() == "windows"):
+            train = pd.DataFrame([[p.split('/')[2].split('\\')[1],
+                                   p.split('/')[2].split('\\')[2], p]
+                                  for p in train], columns=['type', 'image', 'path'])
+        elif (system().lower() == "linux"):
+            train = pd.DataFrame([[p.split('/')[3],
+                                   p.split('/')[4], p]
+                                  for p in train], columns=['type', 'image', 'path'])
+
+        train = self.add_img_size_to_df(train)
+        print("\nRemoving bad train images..\n" + self.SEPARATOR)
+        train = self.deleteBadImages(train)
+
+
+        print("\nNormalizing train images...\n" + self.SEPARATOR)
+        train_data = self.normalize_image_features(train['path'])
+        # train_data = roi(pathtrain)
+
+        print("\nSaving train images...\n" + self.SEPARATOR)
+
+        if (self.useKaggleData & self.keepAspectRatio):
+            if (self.useAditional):
+                np.save('saved_data/trainExtra' + str(self.imgSize) + '_OrigAspectRatio.npy', train_data,
+                        allow_pickle=True, fix_imports=True)
+            else:
+                np.save('saved_data/train' + str(self.imgSize) + '_OrigAspectRatio.npy', train_data,
+                        allow_pickle=True, fix_imports=True)
+
+        else:
+            if (self.useAditional):
+                np.save('saved_data/trainExtra' + str(self.imgSize) + '.npy', train_data,
+                        allow_pickle=True, fix_imports=True)
+            else:
+                np.save('saved_data/train' + str(self.imgSize) + '.npy', train_data,
+                        allow_pickle=True, fix_imports=True)
+
+        print("\nGetting train images labels...\n" + self.SEPARATOR)
+        train1 = train[:].replace("Type_2", "Other").replace("Type_3", "Other")
+        train2 = train[:].replace("Type_1", "Other").replace("Type_3", "Other")
+        train3 = train[:].replace("Type_2", "Other").replace("Type_1", "Other")
+        le = LabelEncoder()
+        train_target1 = le.fit_transform(train1['type'].values)
+        print("\nClases train 1: " + str(le.classes_) + "\n" +
+              self.SEPARATOR)  # in case not 1 to 3 order
+        train_target2 = le.fit_transform(train2['type'].values)
+        print("\nClases train 2: " + str(le.classes_) + "\n" +
+              self.SEPARATOR)  # in case not 1 to 3 order
+        train_target3 = le.fit_transform(train3['type'].values)
+        print("\nClases train 3: " + str(le.classes_) + "\n" +
+              self.SEPARATOR)  # in case not 1 to 3 order
+
+
+        print("\nSaving train images labels...\n" + self.SEPARATOR)
+
+        if (self.useAditional):
+            np.save('saved_data/trainExtraOVA1_target.npy', train_target1,
+                    allow_pickle=True, fix_imports=True)
+            np.save('saved_data/trainExtraOVA2_target.npy', train_target2,
+                    allow_pickle=True, fix_imports=True)
+            np.save('saved_data/trainExtraOVA3_target.npy', train_target3,
+                    allow_pickle=True, fix_imports=True)
+        else:
+            np.save('saved_data/train_targetOVA1.npy', train_target1,
+                    allow_pickle=True, fix_imports=True)
+            np.save('saved_data/train_targetOVA2.npy', train_target2,
+                    allow_pickle=True, fix_imports=True)
+            np.save('saved_data/train_targetOVA3.npy', train_target3,
+                    allow_pickle=True, fix_imports=True)
+
+        if (self.useKaggleData):
+            test = glob.glob("../data/test/*.jpg")
+        else:
+            test = glob.glob("../data/test_256/*.jpg")
+
+        print("\nLoading test images...\n" + self.SEPARATOR)
+        if system().lower() == "windows":
+            test = pd.DataFrame([[p.split('/')[2].split('\\')[1], p]
+                                 for p in test], columns=['image', 'path'])
+        elif (system().lower() == "linux"):
+            test = pd.DataFrame([[p.split('/')[3], p]
+                                 for p in test], columns=['image', 'path'])
+        # [::20] #limit for Kaggle Demo
+
+        print("\nNormalizing test images...\n" + self.SEPARATOR)
+        test_data = self.normalize_image_features(test['path'])
+        # test_data=roi(pathtest)
+        print("\nSaving test images...\n" + self.SEPARATOR)
+
+        if (self.useKaggleData & self.keepAspectRatio):
+            np.save('saved_data/test' + str(self.imgSize) + '_OrigAspectRatio.npy', test_data,
+                    allow_pickle=True, fix_imports=True)
+        else:
+            np.save('saved_data/test' + str(self.imgSize) + '.npy', test_data,
+                    allow_pickle=True, fix_imports=True)
+
+        test_id = test.image.values
+        print("\nSaving test images IDs...\n" + self.SEPARATOR)
+        np.save('saved_data/test_id.npy', test_id,
+                allow_pickle=True, fix_imports=True)
 
 if __name__ == '__main__':
     iUtils = ImageUtils(imgSize=256, useAditional=False, keepAspectRatio=True)

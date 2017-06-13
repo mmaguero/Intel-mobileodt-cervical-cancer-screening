@@ -11,11 +11,13 @@ from keras.callbacks import ModelCheckpoint
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers.core import Dense, Dropout, Flatten
 from keras.models import Sequential, load_model
-from keras.preprocessing.image import ImageDataGenerator
+from sklearn.model_selection import GridSearchCV
 from keras.utils import plot_model
 from sklearn.model_selection import train_test_split
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn import datasets
 
-#from image_utils import ImageUtils
+from image_utils import ImageUtils
 from data_augmentation import DataAugmentation as da
 
 # Input data files are available in the "../input/" directory.
@@ -28,15 +30,16 @@ from data_augmentation import DataAugmentation as da
 imgSize = 64
 prepareData = False
 useAditional = True
-keepAspectRatio = False
+keepAspectRatio = True
 useKaggleData = False
 saveNetArchImage = False
-NumEpoch = 1
-batchSize = 16
-percentTrainForValidation = 0.1
+NumEpoch = 20
+batchSize = 32
+percentTrainForValidation = 0.15
 loadPreviousModel = False
 pathToPreviousModel = "saved_data/scratch_model_ep05_10-06-2017_22-08.hdf5"
 onlyEvaluate = False
+hiperParamOpt = True
 
 SEPARATOR = "=============================================================" + \
             "==================="
@@ -72,13 +75,26 @@ def evaluateModel(model, testData, testLabels):
     print('Test accuracy:', score[1])
 
 
+def hiperParametersOptimization(model, train, labels):
+    '''
+    Reference: http://machinelearningmastery.com/grid-search-hyperparameters-deep-learning-models-python-keras/
+    :return:
+    '''
+    optimizers=['rmsprop', 'adadelta', 'adamax', 'adam']
+    batch_size = np.array([8, 16, 32])
+    epochs = np.array([5, 10, 15, 20])
+    param_grid = dict(batch_size=batch_size, epochs=epochs, opt_=optimizers)
+    grid = GridSearchCV(estimator=model, param_grid=param_grid, scoring='neg_log_loss', n_jobs=-1, verbose=20)
+    print(grid)
+    grid_result = grid.fit(train, labels)
+    return grid_result.best_params_
+
+
 def main():
     if (prepareData):
-        '''
         imgUtils = ImageUtils(imgSize, useAditional=useAditional, keepAspectRatio=keepAspectRatio,
                               useKaggleData=useKaggleData)
         imgUtils.dataPreparation()
-        '''
 
     K.set_image_data_format('channels_first')
     K.set_floatx('float32')
@@ -107,6 +123,11 @@ def main():
         train_data, train_target, test_size=percentTrainForValidation,
         random_state=17)
 
+    print("\nTraining Set shape (num Instances, RGB chanels, width, height): " + str(
+        x_train.shape) + "\nTraining labels: " + str(y_train.shape) + "\nValidating set shape: " + str(
+        x_val_train.shape) + "\nValidating set labels: " + str(
+        y_val_train.shape) + "\n" + SEPARATOR)
+
     print("\nMaking data augmentation...\n" + SEPARATOR)
     datagen = da.prepareDataAugmentation(train_data=train_data)
 
@@ -116,12 +137,12 @@ def main():
         print("Loaded model from: " + pathToPreviousModel)
         model.summary()
     else:
-        model = create_model()
-
-    print("\nTraining Set shape (num Instances, RGB chanels, width, height): " + str(
-        x_train.shape) + "\nTraining labels: " + str(y_train.shape) + "\nValidating set shape: " + str(
-        x_val_train.shape) + "\nValidating set labels: " + str(
-        y_val_train.shape) + "\n" + SEPARATOR)
+        if (hiperParamOpt):
+            model = KerasClassifier(build_fn=create_model, epochs=2, batch_size=32)
+            params = hiperParametersOptimization(model, x_train, y_train)
+            print(params)
+        else:
+            model = create_model()
 
     currentDate = datetime.today()
     timeStamp = currentDate.strftime("%d-%m-%Y_%H-%M")
@@ -145,8 +166,7 @@ def main():
                                          shuffle=True),
                             steps_per_epoch=len(x_train), epochs=NumEpoch,
                             validation_data=(x_val_train, y_val_train),
-                            callbacks=[checkPoint]
-                            , verbose=2)
+                            callbacks=[checkPoint])  # , verbose=2)
 
     print("\nLoading test data...\n" + SEPARATOR)
 
