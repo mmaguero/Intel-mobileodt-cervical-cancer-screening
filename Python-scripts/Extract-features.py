@@ -15,7 +15,7 @@ useAditional = True
 keepAspectRatio = True
 useKaggleData = False
 batchSize = 32
-percentTrainForValidation = 0.9
+percentTrainForValidation = 0.2
 useCustomPretrainedModels = True
 RDM = 17
 dataAugmentation = True
@@ -39,7 +39,7 @@ def create_feature_extractor():
     K.set_image_data_format('channels_first')
     K.set_floatx('float32')
 
-    np.random.seed(17)
+    np.random.seed(RDM)
 
     print("\nLoading train data...\n" + SEPARATOR)
     if (keepAspectRatio):
