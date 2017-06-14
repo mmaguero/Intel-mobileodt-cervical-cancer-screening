@@ -11,7 +11,8 @@ from extract_features import create_feature_extractor
 
 imgSize = 64
 RDM = 17
-loadFeatures = True
+percentTrainForValidation = 0.15
+loadFeatures = False
 
 SEPARATOR = "=============================================================" + \
             "==================="
@@ -40,15 +41,17 @@ if __name__ == '__main__':
     else:
         feature = create_feature_extractor()
 
-    layer = model.feature[-9]  # Adjust here to the right depth.
-tensor = layer.get_output_at(0)
-f = K.function(model.inputs + [K.learning_phase()], (tensor,))
-X_train_svm = f(X_train) 
+    train_target = np.load('saved_data/trainExtra_target.npy')
+
+    test_data = np.load('saved_data/test' + str(imgSize) + '_OrigAspectRatio.npy')
+    test_id = np.load('saved_data/test_id.npy')
+
+    print(feature)
 
     print("train svm using FC-layer feature\n" + SEPARATOR)
     scaler = MinMaxScaler()
-    feature = scaler.fit_transform(feature)
+    feature = scaler.fit_transform()
 
-    svc(feature[0:900],feature[0:900],feature[900:])
-    rf(feature[0:900],feature[0:900],feature[900:])
+    svc(feature, train_target, test_id)
+    rf (feature, train_target, test_id)
 
