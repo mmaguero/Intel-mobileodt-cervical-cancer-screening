@@ -89,19 +89,19 @@ def main():
     # For example, running this (by clicking run or pressing Shift+Enter) will list
     # the files in the input directory
 
-    print(check_output(["ls", "../data"]).decode("utf8"))
+    #print(check_output(["ls", "../data"]).decode("utf8"))
 
     # Any results you write to the current directory are saved as output.
 
-    print(check_output(["ls", "../data/train_256_JPG"]).decode("utf8"))
-
+    #print(check_output(["ls", "../data/train_256_JPG"]).decode("utf8"))
+    '''
     train = glob.glob("../data/train_256_extra/**/*.jpg")
     # print(str(train[0]))
 
-    train = pd.DataFrame([[p.split('/')[2].split('\\')[0],
+    train = pd.DataFrame([[p.split('/')[2].split('\\')[2],
                            p.split('/')[2].split('\\')[1], p]
                           for p in train], columns=['type', 'image', 'path'])
-    test = glob.glob("..\input\\test_256\*.jpg")
+    test = glob.glob("../data/test_256/*.jpg")
     test = pd.DataFrame([[p.split('/')[2].split('\\')[1], p]
                          for p in test], columns=['image', 'path'])
 
@@ -125,17 +125,18 @@ def main():
     #train = glob.glob('../input/train/**/*.jpg') + glob.glob('../input/additional/**/*.jpg')
     print(len(train))
     #train = pd.DataFrame([[p.split('/')[3],p.split('/')[4],p] for p in train], columns = ['type','image','path'])
-    train = train[train['size'] != '0 0'].reset_index(
-        drop=True)  # remove bad images
+    #train = train[train['size'] != '0 0'].reset_index(
+     #   drop=True)  # remove bad images
+    '''
 
-    train_data = normalize_image_features(train['path'])
-    np.save('train.npy', train_data, allow_pickle=True, fix_imports=True)
-    #train_data = np.load('train.npy')
+    #train_data = normalize_image_features(train['path'])
+    #np.save('train.npy', train_data, allow_pickle=True, fix_imports=True)
+    train_data = np.load('saved_data/trainExtra64_OrigAspectRatio.npy')
 
-    le = LabelEncoder()
-    train_target = le.fit_transform(train['type'].values)
-    np.save('train_target.npy', train_target, allow_pickle=True, fix_imports=True)
-    #train_target = np.load('train_target.npy')
+    #le = LabelEncoder()
+    #train_target = le.fit_transform(train['type'].values)
+    #np.save('train_target.npy', train_target, allow_pickle=True, fix_imports=True)
+    train_target = np.load('saved_data/trainExtra_target.npy')
 
     model = KerasClassifier(build_fn=create_model,
                             nb_epoch=9, batch_size=15, verbose=2)
