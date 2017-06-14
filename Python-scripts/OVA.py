@@ -129,7 +129,7 @@ def main():
             train_data, train_target[i], test_size=percentTrainForValidation,
             random_state=17)
 
-        print("\nCreating model " + str(i+1) + "...\n" + SEPARATOR)
+        print("\nCreating model " + str(i + 1) + "...\n" + SEPARATOR)
         if (loadPreviousModel):
             model.append(load_model(pathToPreviousModel[i]))
             print("Loaded model from: " + pathToPreviousModel[i])
@@ -147,13 +147,13 @@ def main():
 
         if (onlyEvaluate):
 
-            print("\nEvaluating Model " + str(i+1) + "...\n" + SEPARATOR)
+            print("\nEvaluating Model " + str(i + 1) + "...\n" + SEPARATOR)
             evaluateModel(model[i], x_val_train, y_val_train)
 
         else:
-            print("\nFitting model " + str(i+1) + "...\n" + SEPARATOR)
+            print("\nFitting model " + str(i + 1) + "...\n" + SEPARATOR)
             checkPoint = ModelCheckpoint(
-                "saved_data/OVA_model" + str(i+1) + "_ep{epoch:02d}_" + timeStamp + ".hdf5",
+                "saved_data/OVA_model" + str(i + 1) + "_ep{epoch:02d}_" + timeStamp + ".hdf5",
                 save_best_only=True)
 
             model[i].fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
@@ -173,14 +173,13 @@ def main():
 
     pred = []
     for i in range(len(model)):
-        print("\nPredicting with model " + str(i+1) + "...\n" + SEPARATOR)
+        print("\nPredicting with model " + str(i + 1) + "...\n" + SEPARATOR)
         pred.append(model[i].predict_proba(test_data))
 
-    print(pred[0][:, 1])
-    print(pred[1][:, 1])
-    print(pred[2][:, 1])
+    predictions = np.transpose(np.vstack((pred[0][:, 1], pred[1][:, 1], pred[2][:, 1])))
 
-    df = pd.DataFrame([pred[0][:, 1], pred[1][:, 1], pred[2][:, 1]], columns=['Type_1', 'Type_2', 'Type_3'])
+    df = pd.DataFrame(predictions,
+                      columns=['Type_1', 'Type_2', 'Type_3'])
     df['image_name'] = test_id
 
     df.to_csv("../submission/OVA_" + timeStamp + ".csv", index=False)
