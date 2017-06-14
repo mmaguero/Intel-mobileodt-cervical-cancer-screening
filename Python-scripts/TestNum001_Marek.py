@@ -15,7 +15,7 @@ from sklearn.model_selection import GridSearchCV
 from keras.utils import plot_model
 from sklearn.model_selection import train_test_split
 from keras.wrappers.scikit_learn import KerasClassifier
-from sklearn import datasets
+from sklearn.model_selection import StratifiedKFold
 
 from image_utils import ImageUtils
 from data_augmentation import DataAugmentation as da
@@ -33,13 +33,14 @@ useAditional = True
 keepAspectRatio = True
 useKaggleData = False
 saveNetArchImage = False
-NumEpoch = 20
+NumEpoch = 30
 batchSize = 32
-percentTrainForValidation = 0.15
+percentTrainForValidation = 0.05
 loadPreviousModel = False
 pathToPreviousModel = "saved_data/scratch_model_ep05_10-06-2017_22-08.hdf5"
 onlyEvaluate = False
 hiperParamOpt = True
+seed = 17
 
 SEPARATOR = "=============================================================" + \
             "==================="
@@ -80,14 +81,22 @@ def hiperParametersOptimization(model, train, labels):
     Reference: http://machinelearningmastery.com/grid-search-hyperparameters-deep-learning-models-python-keras/
     :return:
     '''
-    optimizers=['rmsprop', 'adadelta', 'adamax', 'adam']
-    batch_size = np.array([8, 16, 32])
-    epochs = np.array([5, 10, 15, 20])
+    optimizers = ['adadelta', 'adamax', 'adam']
+    batch_size = np.array([16, 32, 64])
+    epochs = np.array([NumEpoch])
     param_grid = dict(batch_size=batch_size, epochs=epochs, opt_=optimizers)
-    grid = GridSearchCV(estimator=model, param_grid=param_grid, scoring='neg_log_loss', n_jobs=-1, verbose=20)
-    print(grid)
-    grid_result = grid.fit(train, labels)
-    return grid_result.best_params_
+    # evaluate using 10-fold cross validation
+    kfold = StratifiedKFold(n_splits=3, shuffle=True, random_state=seed)
+    currentDate = datetime.today()
+    timeStamp = currentDate.strftime("%d-%m-%Y_%H-%M")
+    checkPoint = ModelCheckpoint(
+        "saved_data/scratch_model_loss{val_loss:.4f}_ep{epoch:02d}_" + timeStamp + ".hdf5",
+        save_best_only=True)
+    callbackList = [checkPoint]
+    grid = GridSearchCV(estimator=model, param_grid=param_grid, scoring='neg_log_loss', cv=kfold, verbose=20,
+                        fit_params={'callbacks': callbackList})
+    grid_result = grid.fit(train, labels, )
+    return grid_result
 
 
 def main():
@@ -99,7 +108,7 @@ def main():
     K.set_image_data_format('channels_first')
     K.set_floatx('float32')
 
-    np.random.seed(17)
+    np.random.seed(seed)
 
     print("\nLoading train data...\n" + SEPARATOR)
 
@@ -131,6 +140,8 @@ def main():
     print("\nMaking data augmentation...\n" + SEPARATOR)
     datagen = da.prepareDataAugmentation(train_data=train_data)
 
+    currentDate = datetime.today()
+    timeStamp = currentDate.strftime("%d-%m-%Y_%H-%M")
     print("\nCreating model...\n" + SEPARATOR)
     if (loadPreviousModel):
         model = load_model(pathToPreviousModel)
@@ -138,17 +149,28 @@ def main():
         model.summary()
     else:
         if (hiperParamOpt):
-            model = KerasClassifier(build_fn=create_model, epochs=2, batch_size=32)
-            params = hiperParametersOptimization(model, x_train, y_train)
-            print(params)
+            print("\nHyperparameter optimization...\n" + SEPARATOR)
+            model = KerasClassifier(build_fn=create_model, epochs=NumEpoch, batch_size=batchSize,
+                                    validation_split=percentTrainForValidation)
+            grid_result = hiperParametersOptimization(model, x_train, y_train)
+            # summarize results
+            print("Best score: %f using parameters %s" % (grid_result.best_score_, grid_result.best_params_))
+            means = grid_result.cv_results_['mean_test_score']
+            stds = grid_result.cv_results_['std_test_score']
+            params = grid_result.cv_results_['params']
+            for mean, stdev, param in zip(means, stds, params):
+                print("%f (%f) with: %r" % (mean, stdev, param))
+            grid_result.best_estimator_.model.save("saved_data/GridCV_Best_estimator"+timeStamp+".h5")
+            model = grid_result
+
         else:
             model = create_model()
 
-    currentDate = datetime.today()
-    timeStamp = currentDate.strftime("%d-%m-%Y_%H-%M")
-
     if (saveNetArchImage):
-        plot_model(model, to_file='saved_data/model_' + timeStamp + '.png')
+        if (hiperParamOpt):
+            plot_model(grid_result.best_estimator, to_file='saved_data/model_' + timeStamp + '.png')
+        else:
+            plot_model(model, to_file='saved_data/model_' + timeStamp + '.png')
 
     if (onlyEvaluate):
 
@@ -156,33 +178,38 @@ def main():
         evaluateModel(model, x_val_train, y_val_train)
 
     else:
-        print("\nFitting model...\n" + SEPARATOR)
-        checkPoint = ModelCheckpoint(
-            "saved_data/scratch_model_ep{epoch:02d}_" + timeStamp + ".hdf5",
-            save_best_only=True)
-        # tfBoard = TensorBoard("saved_data/log", histogram_freq=2, write_graph=True, write_images=True,
-        # embeddings_freq=2)
-        model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
-                                         shuffle=True),
-                            steps_per_epoch=len(x_train), epochs=NumEpoch,
-                            validation_data=(x_val_train, y_val_train),
-                            callbacks=[checkPoint])  # , verbose=2)
+        if hiperParamOpt is False:
+            fitKerasModel(datagen, model, timeStamp, x_train, x_val_train, y_train, y_val_train)
 
+    makePrediction(model, timeStamp)
+
+
+def fitKerasModel(datagen, model, timeStamp, x_train, x_val_train, y_train, y_val_train):
+    print("\nFitting model...\n" + SEPARATOR)
+    checkPoint = ModelCheckpoint(
+        "saved_data/scratch_model_ep{epoch:02d}_" + timeStamp + ".hdf5",
+        save_best_only=True)
+    # tfBoard = TensorBoard("saved_data/log", histogram_freq=2, write_graph=True, write_images=True,
+    # embeddings_freq=2)
+    model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
+                                     shuffle=True),
+                        steps_per_epoch=len(x_train), epochs=NumEpoch,
+                        validation_data=(x_val_train, y_val_train),
+                        callbacks=[checkPoint])  # , verbose=2)
+
+
+def makePrediction(model, timeStamp):
     print("\nLoading test data...\n" + SEPARATOR)
-
     if (keepAspectRatio):
         test_data = np.load('saved_data/test' + str(imgSize) + '_OrigAspectRatio.npy')
         test_id = np.load('saved_data/test_id.npy')
     else:
         test_data = np.load('saved_data/test' + str(imgSize) + '.npy')
         test_id = np.load('saved_data/test_id.npy')
-
     print("\nPredicting with model...\n" + SEPARATOR)
     pred = model.predict_proba(test_data)
-
     df = pd.DataFrame(pred, columns=['Type_1', 'Type_2', 'Type_3'])
     df['image_name'] = test_id
-
     df.to_csv("../submission/Test001_Marek_" + timeStamp + ".csv", index=False)
 
 

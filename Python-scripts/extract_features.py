@@ -14,12 +14,13 @@ prepareData = False
 useAditional = True
 keepAspectRatio = True
 useKaggleData = False
-batchSize = 128
-percentTrainForValidation = 0.3
+batchSize = 32
+percentTrainForValidation = 0.1
 useCustomPretrainedModels = True
 RDM = 17
 dataAugmentation = False
-
+loadPreviousModel = True
+pathToPreviousModel = ""
 SEPARATOR = "=============================================================" + \
             "==================="
 
@@ -58,45 +59,61 @@ def create_feature_extractor():
             train_data = np.load('saved_data/train' + str(imgSize) + '.npy')
             train_target = np.load('saved_data/train_target.npy')
 
+
+
     x_train, x_val_train, y_train, y_val_train = train_test_split(
         train_data, train_target, test_size=percentTrainForValidation,
         random_state=RDM)
+
+    print("\nLoading test data...\n" + SEPARATOR)
+    if (keepAspectRatio):
+        test_data = np.load('saved_data/test' + str(imgSize) + '_OrigAspectRatio.npy')
+        test_id = np.load('saved_data/test_id.npy')
+    else:
+        test_data = np.load('saved_data/test' + str(imgSize) + '.npy')
+        test_id = np.load('saved_data/test_id.npy')
+
 
     if(dataAugmentation):
         print("\nMaking data augmentation...\n" + SEPARATOR)
         datagen = da.prepareDataAugmentation(train_data=train_data)
 
+    print("\nCreating model...\n" + SEPARATOR)
+    if (loadPreviousModel):
+        model = load_model(pathToPreviousModel)
+        print("Loaded model from: " + pathToPreviousModel)
+    else:
+        model = create_pretrained_model(ftModel, ftApply)
     # loading VGG16 model weights
     model = VGG16(weights='imagenet', include_top=False, input_shape=(3, imgSize, imgSize))
 
     # Extracting features from the train dataset using the VGG16 pre-trained model
-    print("\nPredicting with model...\n" + SEPARATOR)
+    print("\nGenerating features...\n" + SEPARATOR)
     if(dataAugmentation):
         #predict_generator(self, generator, steps, max_q_size=10, workers=1, pickle_safe=False, verbose=1)
+        # TODO dar mas imagenes
         features_train=model.predict_generator(datagen.flow(x_train, y_train, batch_size=batchSize, shuffle=True), len(x_train), verbose=1)
+        features_valid = model.predict_generator(datagen.flow(x_val_train, y_val_train, batch_size=batchSize, shuffle=True),
+                                                 len(x_val_train), verbose=1)
     else:
-        features_train=model.predict(train_data, batch_size=batchSize, verbose=1)
+        features_train=model.predict(x_train, batch_size=batchSize, verbose=1)
+        features_valid=model.predict(x_val_train, batch_size=batchSize, verbose=1 )
 
-    train_x=features_train#.reshape(49000,25088)
 
-    # converting target variable to array
-
-    train_y=train_target#np.asarray(train['label'])
-
-    # creating training and validation set
-    X_train, X_valid, Y_train, Y_valid=train_test_split(train_x,train_y,test_size=percentTrainForValidation, random_state=RDM)
-
-    #return X_train, X_valid, Y_train, Y_valid
     if(dataAugmentation):
-        np.save('saved_data/feaExt_DATrain' + str(imgSize) + '.npy', X_train,
+        np.save('saved_data/feaExt_DATrain' + str(imgSize) + '.npy', features_train,
                     allow_pickle=True, fix_imports=True)
-        np.save('saved_data/feaExt_DAValid' + str(imgSize) + '.npy', X_valid,
+        np.save('saved_data/feaExt_DAValid' + str(imgSize) + '.npy', features_valid,
                     allow_pickle=True, fix_imports=True)
     else:
-        np.save('saved_data/feaExt_Train' + str(imgSize) + '.npy', X_train,
+        np.save('saved_data/feaExt_Train' + str(imgSize) + '.npy', features_train,
                     allow_pickle=True, fix_imports=True)
-        np.save('saved_data/feaExt_Valid' + str(imgSize) + '.npy', X_valid,
-                    allow_pickle=True, fix_imports=True) 
+        np.save('saved_data/feaExt_Train' + str(imgSize) + '_target.npy', y_train,
+                allow_pickle=True, fix_imports=True)
+        np.save('saved_data/feaExt_Valid' + str(imgSize) + '.npy', features_valid,
+                    allow_pickle=True, fix_imports=True)
+        np.save('saved_data/feaExt_Valid' + str(imgSize) + '_target.npy', y_val_train,
+                allow_pickle=True, fix_imports=True)
 
     return features_train
     

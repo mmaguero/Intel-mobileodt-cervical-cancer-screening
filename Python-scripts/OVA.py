@@ -32,12 +32,12 @@ useKaggleData = False
 saveNetArchImage = False
 NumEpoch = 1
 batchSize = 32
-percentTrainForValidation = 0.2
-loadPreviousModel = False
-pathToPreviousModel = ["saved_data/scratch_model_ep05_10-06-2017_22-08.hdf5",
-                       "saved_data/scratch_model_ep05_10-06-2017_22-08.hdf5",
-                       "saved_data/scratch_model_ep05_10-06-2017_22-08.hdf5"]
-onlyEvaluate = False
+percentTrainForValidation = 0.99
+loadPreviousModel = True
+pathToPreviousModel = ["saved_data/OVA_model1_ep13_13-06-2017_21-17.hdf5",
+                       "saved_data/OVA_model2_ep13_13-06-2017_21-17.hdf5",
+                       "saved_data/OVA_model3_ep14_13-06-2017_21-17.hdf5"]
+onlyEvaluate = True
 
 SEPARATOR = "=============================================================" + \
             "==================="
