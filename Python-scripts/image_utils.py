@@ -275,7 +275,7 @@ class ImageUtils:
         print("\nSaving test images IDs...\n" + self.SEPARATOR)
         np.save('saved_data/test_id.npy', test_id,
                 allow_pickle=True, fix_imports=True)
-
+        self.getTestTarget()
     def dataPreparationOVA(self):
         if (self.useKaggleData):
             if (self.useAditional):
@@ -393,8 +393,29 @@ class ImageUtils:
         print("\nSaving test images IDs...\n" + self.SEPARATOR)
         np.save('saved_data/test_id.npy', test_id,
                 allow_pickle=True, fix_imports=True)
+        self.getTestTarget()
+
+
+    def getTestTarget(self):
+
+        solution_stg1 = pd.read_csv("../data/solution_stg1_release.csv")
+
+        dfSolution = pd.DataFrame(solution_stg1)
+
+        x = dfSolution.drop('image_name', 1).stack()
+        dfSolution = dfSolution.assign(target=pd.Series(pd.Categorical(x[x != 0].index.get_level_values(1))))
+
+        print(dfSolution)
+        le = LabelEncoder()
+        test_target = le.fit_transform(dfSolution['target'].values)
+        # FIXME da error
+        print("\nClases: " + str(le.classes_) + "\n" +
+              self.SEPARATOR)  # in case not 1 to 3 order
+        print("\nSaving test images labels...\n" + self.SEPARATOR)
+
+        np.save('saved_data/test_target.npy', test_target,
+                allow_pickle=True, fix_imports=True)
 
 if __name__ == '__main__':
-    iUtils = ImageUtils(imgSize=256, useAditional=False, keepAspectRatio=True)
-    iUtils.roi("../data/train_256")
-    iUtils.checkResize("../data/train/Type_2/301.jpg")
+    iUtils = ImageUtils(imgSize=256, useAditional=False, keepAspectRatio=True, useKaggleData=False)
+    iUtils.getTestTarget()

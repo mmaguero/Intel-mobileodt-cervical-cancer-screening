@@ -1,0 +1,59 @@
+@media print {
+    a[href]:after {
+        content: "" !important;
+    }
+    abbr[title]:after {
+        content: " " !important;
+    }
+    body {
+        font-size: 0.625em;
+    }
+    .portada {
+        text-align: center;
+        width: 80%;
+        margin: auto;
+    }
+    .portada-middle {
+        margin-top: 50px;
+    }
+    
+    table {
+        border-collapse: collapse;
+        width: auto;
+        margin: auto;
+    }
+    table, th, td {
+        border: 1px solid black;
+        text-align: center;
+    }
+    tr:nth-child(even) {
+        background-color: #f2f2f2
+    }
+    div.tizq {
+        display: block;
+        float: left;
+    }
+    div.tgradopesos {
+        display: block;
+        float: left;
+        margin-left: 35px;
+    }
+    div.tcercania {
+        display: block;
+        float: left;
+        margin-left: 33px;
+    }
+    div.tintermed {
+        display: block;
+        float: left;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    div.tcentralidad {
+        display: block;
+        float: left;
+        margin-top: 10px;
+        margin-left: 67px;
+        margin-bottom: 10px;
+    }
+}

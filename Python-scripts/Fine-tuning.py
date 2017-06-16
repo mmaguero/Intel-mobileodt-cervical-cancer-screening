@@ -33,10 +33,10 @@ useKaggleData = False
 saveNetArchImage = False
 NumEpoch = 3
 batchSize = 16
-percentTrainForValidation = 0.25
+percentTrainForValidation = 0.9999
 loadPreviousModel = True
-pathToPreviousModel = "saved_data/VGG16_fine-tunned_ep00_13-06-2017_12-47.hdf5"
-onlyEvaluate = False
+pathToPreviousModel = "saved_data/VGG16_fine-tunned_ep00_13-06-2017_17-26.hdf5"
+onlyEvaluate = True
 ftModel = "VGG16"  # IV3/VGG16/ = InceptionV3[Min.139|Def.299]/VGG16[Min.48|Def.224]
 ftApply = True
 
@@ -65,7 +65,7 @@ def create_pretrained_model(baseModel, fineTunning, opt_='rmsprop'):
         exit(1)
 
         '''
-    # https://github.com/flyyufelix/cnn_finetune/blob/master/vgg16.py
+   
     if (fineTunning):
         # Truncate and replace softmax layer for transfer learning
         myModel.layers.pop()
@@ -86,10 +86,11 @@ def create_pretrained_model(baseModel, fineTunning, opt_='rmsprop'):
     return model
 
 
-def evaluateModel(model, testData, testLabels):
-    score = model.evaluate(testData, testLabels, verbose=0)
-    print('Test loss:', score[0])
-    print('Test accuracy:', score[1])
+
+def evaluateModel(model, valData, valLabels):
+    score = model.evaluate(valData, valLabels)
+    print('\nValidation loss:', score[0])
+    print('Validation accuracy:', score[1])
 
 
 def main():
@@ -204,23 +205,28 @@ def main():
                                 validation_data=(x_val_train, y_val_train),
                                 callbacks=[checkPoint])  # , verbose=1)
 
-    print("\nLoading test data...\n" + SEPARATOR)
 
+    makePrediction(model, timeStamp)
+
+def makePrediction(model, timeStamp):
+    print("\nLoading test data...\n" + SEPARATOR)
     if (keepAspectRatio):
         test_data = np.load('saved_data/test' + str(imgSize) + '_OrigAspectRatio.npy')
-        test_id = np.load('saved_data/test_id.npy')
+        test_label = np.load('saved_data/test_target.npy')
     else:
         test_data = np.load('saved_data/test' + str(imgSize) + '.npy')
-        test_id = np.load('saved_data/test_id.npy')
-
+        test_label = np.load('saved_data/test_target.npy')
     print("\nPredicting with model...\n" + SEPARATOR)
-    pred = model.predict(test_data, verbose=1)
-
+    score = model.evaluate(test_data, test_label)
+    print('\nTest loss:', score[0])
+    print('Test accuracy:', score[1])
+    '''
+    pred = model.predict_proba(test_data)
     df = pd.DataFrame(pred, columns=['Type_1', 'Type_2', 'Type_3'])
     df['image_name'] = test_id
+    df.to_csv("../submission/Test001_Marek_" + timeStamp + ".csv", index=False)
 
-    df.to_csv("../submission/" + ftModel + "_" + timeStamp + ".csv", index=False)
-
+    '''
 
 if __name__ == '__main__':
     main()

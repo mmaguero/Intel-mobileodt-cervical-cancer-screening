@@ -11,7 +11,7 @@ from sklearn.svm import SVC
 from extract_features import create_feature_extractor
 
 imgSize = 64
-loadFeatures = False
+loadFeatures = True
 RDM = 17
 
 clasif="RF" # RF/SVM

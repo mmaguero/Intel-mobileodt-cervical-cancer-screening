@@ -35,11 +35,11 @@ useKaggleData = False
 saveNetArchImage = False
 NumEpoch = 30
 batchSize = 32
-percentTrainForValidation = 0.05
-loadPreviousModel = False
+percentTrainForValidation = 0.9999
+loadPreviousModel = True
 pathToPreviousModel = "saved_data/scratch_model_ep05_10-06-2017_22-08.hdf5"
-onlyEvaluate = False
-hiperParamOpt = True
+onlyEvaluate = True
+hiperParamOpt = False
 seed = 17
 
 SEPARATOR = "=============================================================" + \
@@ -70,10 +70,10 @@ def create_model(opt_='adadelta'):
     return model
 
 
-def evaluateModel(model, testData, testLabels):
-    score = model.evaluate(testData, testLabels, verbose=0)
-    print('Test loss:', score[0])
-    print('Test accuracy:', score[1])
+def evaluateModel(model, valData, valLabels):
+    score = model.evaluate(valData, valLabels)
+    print('Validation loss:', score[0])
+    print('Validation accuracy:', score[1])
 
 
 def hiperParametersOptimization(model, train, labels):
@@ -202,15 +202,24 @@ def makePrediction(model, timeStamp):
     print("\nLoading test data...\n" + SEPARATOR)
     if (keepAspectRatio):
         test_data = np.load('saved_data/test' + str(imgSize) + '_OrigAspectRatio.npy')
+        test_label = np.load('saved_data/test_target.npy')
         test_id = np.load('saved_data/test_id.npy')
     else:
         test_data = np.load('saved_data/test' + str(imgSize) + '.npy')
+        test_label = np.load('saved_data/test_target.npy')
         test_id = np.load('saved_data/test_id.npy')
     print("\nPredicting with model...\n" + SEPARATOR)
+    score = model.evaluate(test_data, test_label)
+    print('\nTest loss:', score[0])
+    print('Test accuracy:', score[1])
+
     pred = model.predict_proba(test_data)
     df = pd.DataFrame(pred, columns=['Type_1', 'Type_2', 'Type_3'])
     df['image_name'] = test_id
+    df['target'] = test_label
     df.to_csv("../submission/Test001_Marek_" + timeStamp + ".csv", index=False)
+
+
 
 
 if __name__ == '__main__':

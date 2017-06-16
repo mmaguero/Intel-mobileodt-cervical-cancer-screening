@@ -6,13 +6,13 @@
 - [x] Probar eliminando imagenes incorrectas según se comenta en este [kernel](https://www.kaggle.com/deveaup/checking-bounding-boxes-and-additional-dataset/notebook/notebook) y en [este](https://www.kaggle.com/chiszpanski/non-cervix-images) **@Aythae**: ya están eliminados en los nuevos conjuntos extra
 - [x] Probar más data augmentatión en Keras usando [ImagePreprocessing](https://keras.io/preprocessing/image/#imagedatagenerator) **@AythaE**
 - [ ] Comparar arquitectura red buena preentrenada con inicialización aleatoria
-- [ ] Probar learning from scratch con mas data augmentation e imagenes mejor redimensionadas
-- [ ] Lanzar modelo con una red pre-entrenada (inception v3)
+- [x] Probar learning from scratch con mas data augmentation e imagenes mejor redimensionadas
+- [x] Lanzar modelo con una red pre-entrenada (inception v3)
 - [x] Lanzar modelo con fine-tuning
 - [x] Compara fine-tunning vgg e inception. Demasiado computo
 - [ ] Extraer caracteristicas con red preentrenada
 - [ ] Extraer características con fine-tunning
 - [ ] Mirar OVO
 - [x] Aplicar OVA
-- [ ] Mirar cross validation
+- [x] Mirar cross validation
 - [ ] Mirar como crear ensemble de modelos
