@@ -16,7 +16,7 @@ exports.header = {
 
         today = dd + '/' + mm + '/' + yyyy;
         if (pageNum > 1) {
-            return "<p style=\"font-size: x-small; color:Grey;\">Aythami Estévez Olivas <span style='float:right'>" + today + "</span></p>"
+            return "<p style=\"font-size: x-small; color:Grey;\">Aythami Estévez Olivas & Marvin Agüero Torales<span style='float:right'>" + today + "</span></p>"
         } else {
             return
         }
