@@ -15,8 +15,8 @@ prepareData = False
 useAditional = True
 keepAspectRatio = True
 useKaggleData = False
-batchSize = 32
-percentTrainForValidation = 0.05
+batchSize = 12
+percentTrainForValidation = 0.015
 useCustomPretrainedModels = True
 RDM = 17
 dataAugmentation = True
@@ -96,29 +96,64 @@ def create_feature_extractor():
 
     # Extracting features from the train dataset using the VGG16 pre-trained model
     print("\nGenerating features...\n" + SEPARATOR)
+    print("\nTraining features...\n")
     if(dataAugmentation):
         #predict_generator(self, generator, steps, max_q_size=10, workers=1, pickle_safe=False, verbose=1)
-        # TODO dar mas imagenes
-        features_train=model.predict_generator(datagen.flow(x_train, y_train, batch_size=batchSize, shuffle=True), len(x_train)*2, verbose=1)
-        features_valid = model.predict_generator(datagen.flow(x_val_train, y_val_train, batch_size=batchSize, shuffle=True),
-                                                 len(x_val_train), verbose=1)
+        # TODO dar mas imagenes7
+        '''
+        batches = 0
+        features_train = []
+        train_labels = []
+        for x_batch, y_batch in datagen.flow(x_train, y_train, batch_size=batchSize, shuffle=True):
+            features_batch = model.predict_on_batch(x_batch)
+            features_train.append(features_batch)
+            train_labels.append(y_batch)
+            batches += 1
+            print("Batches: "+str(batches)+'/'+str(len(x_train)))
+            if batches >= len(x_train):
+                # we need to break the loop by hand because
+                # the generator loops indefinitely
+                break
+        '''
+        print("\nValidation features...\n")
+
+        batches = 0
+        features_valid = []
+        valid_labels = []
+        for x_batch, y_batch in datagen.flow(x_val_train, y_val_train, batch_size=batchSize, shuffle=True):
+            features_batch = model.predict_on_batch(x_batch)
+            features_valid.append(features_batch)
+            valid_labels.append(y_batch)
+            batches += 1
+            print("Batches: "+str(batches)+'/'+str(len(x_val_train)))
+            if batches >= len(x_val_train) // batchSize:
+                # we need to break the loop by hand because
+                # the generator loops indefinitely
+                break
+
+        print("\nTest features...\n")
+
         features_test = model.predict(test_data, batch_size=batchSize, verbose=1)
 
     else:
         features_train=model.predict(x_train, batch_size=batchSize, verbose=1)
+        print("\nValidation features...\n")
         features_valid=model.predict(x_val_train, batch_size=batchSize, verbose=1)
+        print("\nTest features...\n")
         features_test = model.predict(test_data, batch_size=batchSize, verbose=1)
 
 
     if(dataAugmentation):
+        '''
         np.save('saved_data/feaExt_DATrain' + str(imgSize) + '.npy', features_train,
                     allow_pickle=True, fix_imports=True)
+        np.save('saved_data/feaExt_DATrain' + str(imgSize) + '_target.npy', train_labels,
+                allow_pickle=True, fix_imports=True)
+        '''
         np.save('saved_data/feaExt_DAValid' + str(imgSize) + '.npy', features_valid,
                     allow_pickle=True, fix_imports=True)
-        np.save('saved_data/feaExt_DATrain' + str(imgSize) + '_target.npy', y_train,
-                allow_pickle=True, fix_imports=True)
 
-        np.save('saved_data/feaExt_DAValid' + str(imgSize) + '_target.npy', y_val_train,
+        np.save('saved_data/feaExt_DAValid' + str(imgSize) + '_target.npy', valid_labels,
                 allow_pickle=True, fix_imports=True)
         np.save('saved_data/feaExt_test' + str(imgSize) + '.npy', features_test,
                 allow_pickle=True, fix_imports=True)
@@ -134,7 +169,7 @@ def create_feature_extractor():
         np.save('saved_data/feaExt_test' + str(imgSize) + '.npy', features_test,
                 allow_pickle=True, fix_imports=True)
 
-    return features_train
+
     
 if __name__ == '__main__':
     feature = create_feature_extractor()

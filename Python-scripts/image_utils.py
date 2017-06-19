@@ -418,4 +418,5 @@ class ImageUtils:
 
 if __name__ == '__main__':
     iUtils = ImageUtils(imgSize=256, useAditional=False, keepAspectRatio=True, useKaggleData=False)
-    iUtils.getTestTarget()
+    iUtils.checkResize("../data/train/Type_1/1093.jpg")
+    #iUtils.getTestTarget()

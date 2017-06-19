@@ -35,10 +35,10 @@ useKaggleData = False
 saveNetArchImage = False
 NumEpoch = 30
 batchSize = 32
-percentTrainForValidation = 0.9999
-loadPreviousModel = True
+percentTrainForValidation = 0.1
+loadPreviousModel = False
 pathToPreviousModel = "saved_data/scratch_model_ep05_10-06-2017_22-08.hdf5"
-onlyEvaluate = True
+onlyEvaluate = False
 hiperParamOpt = False
 seed = 17
 
@@ -193,7 +193,7 @@ def fitKerasModel(datagen, model, timeStamp, x_train, x_val_train, y_train, y_va
     # embeddings_freq=2)
     model.fit_generator(datagen.flow(x_train, y_train, batch_size=batchSize,
                                      shuffle=True),
-                        steps_per_epoch=len(x_train), epochs=NumEpoch,
+                        steps_per_epoch=len(x_train)//batchSize, epochs=NumEpoch,
                         validation_data=(x_val_train, y_val_train),
                         callbacks=[checkPoint])  # , verbose=2)
 
