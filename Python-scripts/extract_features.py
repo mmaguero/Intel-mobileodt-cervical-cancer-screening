@@ -19,7 +19,7 @@ batchSize = 12
 percentTrainForValidation = 0.015
 useCustomPretrainedModels = True
 RDM = 17
-dataAugmentation = True
+dataAugmentation = False
 loadPreviousModel = True
 pathToPreviousModel = "saved_data/VGG16_fine-tunned_ep00_13-06-2017_17-26.hdf5"
 ftModel = "VGG16"  # IV3/VGG16/ = InceptionV3[Min.139|Def.299]/VGG16[Min.48|Def.224]
@@ -100,7 +100,7 @@ def create_feature_extractor():
     if(dataAugmentation):
         #predict_generator(self, generator, steps, max_q_size=10, workers=1, pickle_safe=False, verbose=1)
         # TODO dar mas imagenes7
-        '''
+
         batches = 0
         features_train = []
         train_labels = []
@@ -114,7 +114,7 @@ def create_feature_extractor():
                 # we need to break the loop by hand because
                 # the generator loops indefinitely
                 break
-        '''
+
         print("\nValidation features...\n")
 
         batches = 0
@@ -144,30 +144,56 @@ def create_feature_extractor():
 
 
     if(dataAugmentation):
-        '''
-        np.save('saved_data/feaExt_DATrain' + str(imgSize) + '.npy', features_train,
-                    allow_pickle=True, fix_imports=True)
-        np.save('saved_data/feaExt_DATrain' + str(imgSize) + '_target.npy', train_labels,
-                allow_pickle=True, fix_imports=True)
-        '''
-        np.save('saved_data/feaExt_DAValid' + str(imgSize) + '.npy', features_valid,
+        if (useAditional):
+            np.save('saved_data/feaExt_DATrain' + str(imgSize) + '.npy', features_train,
+                        allow_pickle=True, fix_imports=True)
+            np.save('saved_data/feaExt_DATrain' + str(imgSize) + '_target.npy', train_labels,
                     allow_pickle=True, fix_imports=True)
 
-        np.save('saved_data/feaExt_DAValid' + str(imgSize) + '_target.npy', valid_labels,
-                allow_pickle=True, fix_imports=True)
-        np.save('saved_data/feaExt_test' + str(imgSize) + '.npy', features_test,
-                allow_pickle=True, fix_imports=True)
+            np.save('saved_data/feaExt_DAValid' + str(imgSize) + '.npy', features_valid,
+                        allow_pickle=True, fix_imports=True)
+
+            np.save('saved_data/feaExt_DAValid' + str(imgSize) + '_target.npy', valid_labels,
+                    allow_pickle=True, fix_imports=True)
+            np.save('saved_data/feaExt_test' + str(imgSize) + '.npy', features_test,
+                    allow_pickle=True, fix_imports=True)
+        else:
+            np.save('saved_data/fea_DATrain' + str(imgSize) + '.npy', features_train,
+                    allow_pickle=True, fix_imports=True)
+            np.save('saved_data/fea_DATrain' + str(imgSize) + '_target.npy', train_labels,
+                    allow_pickle=True, fix_imports=True)
+
+            np.save('saved_data/fea_DAValid' + str(imgSize) + '.npy', features_valid,
+                    allow_pickle=True, fix_imports=True)
+
+            np.save('saved_data/fea_DAValid' + str(imgSize) + '_target.npy', valid_labels,
+                    allow_pickle=True, fix_imports=True)
+            np.save('saved_data/fea_test' + str(imgSize) + '.npy', features_test,
+                    allow_pickle=True, fix_imports=True)
     else:
-        np.save('saved_data/feaExt_Train' + str(imgSize) + '.npy', features_train,
+        if (useAditional):
+
+            np.save('saved_data/feaExt_Train' + str(imgSize) + '.npy', features_train,
+                        allow_pickle=True, fix_imports=True)
+            np.save('saved_data/feaExt_Train' + str(imgSize) + '_target.npy', y_train,
                     allow_pickle=True, fix_imports=True)
-        np.save('saved_data/feaExt_Train' + str(imgSize) + '_target.npy', y_train,
-                allow_pickle=True, fix_imports=True)
-        np.save('saved_data/feaExt_Valid' + str(imgSize) + '.npy', features_valid,
+            np.save('saved_data/feaExt_Valid' + str(imgSize) + '.npy', features_valid,
+                        allow_pickle=True, fix_imports=True)
+            np.save('saved_data/feaExt_Valid' + str(imgSize) + '_target.npy', y_val_train,
                     allow_pickle=True, fix_imports=True)
-        np.save('saved_data/feaExt_Valid' + str(imgSize) + '_target.npy', y_val_train,
-                allow_pickle=True, fix_imports=True)
-        np.save('saved_data/feaExt_test' + str(imgSize) + '.npy', features_test,
-                allow_pickle=True, fix_imports=True)
+            np.save('saved_data/feaExt_test' + str(imgSize) + '.npy', features_test,
+                    allow_pickle=True, fix_imports=True)
+        else:
+            np.save('saved_data/fea_Train' + str(imgSize) + '.npy', features_train,
+                    allow_pickle=True, fix_imports=True)
+            np.save('saved_data/fea_Train' + str(imgSize) + '_target.npy', y_train,
+                    allow_pickle=True, fix_imports=True)
+            np.save('saved_data/fea_Valid' + str(imgSize) + '.npy', features_valid,
+                    allow_pickle=True, fix_imports=True)
+            np.save('saved_data/fea_Valid' + str(imgSize) + '_target.npy', y_val_train,
+                    allow_pickle=True, fix_imports=True)
+            np.save('saved_data/fea_test' + str(imgSize) + '.npy', features_test,
+                    allow_pickle=True, fix_imports=True)
 
 
     
