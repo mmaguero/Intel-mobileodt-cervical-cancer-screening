@@ -7,7 +7,7 @@
 # Clasificación de Imágenes
 *****
 
-<img src="imgs/ugr.png" alt="Logo UGR" style="width: 200px; height: auto;"/>
+<img src="http://secretariageneral.ugr.es/pages/ivc/descarga/_img/vertical/ugrmarca01color_2/!" alt="Logo UGR" style="width: 200px; height: auto;"/>
 
 <div class="portada-middle">
 
@@ -65,7 +65,7 @@ Ejemplo de Indice final eliminando el enlace y añadiendo el número de página
 
 ## 1. Exploración de datos
 
-Utilizaremos CNNs (Convolutional Neural Networks) y técnicas de clasificación para la predicción del conjunto de imágenes. Antes que nada descargamos las imágenes, hay un conjunto de train y otro de test, también un conjunto extra de train, alrededor de 35 GB en imágenes (2000*3000px aproximadamente, en formaro .jpg), por lo que debemos aplicar técnicas para poder reducirlas. A simple vista, se ven imágenes de fondo verde, otras a color, enfocadas de distintos puntos, por lo que, además de reducirlas, se podría tratar de hacerlas más uniformes, en blanco y negro por ejemplo, utilizar data augmentation o aumento de datos, respetar la relación de aspecto, etc.
+Utilizaremos CNNs (Convolutional Neural Networks) y técnicas de clasificación para la predicción del conjunto de imágenes. Antes que nada descargamos las imágenes, hay un conjunto de train y otro de test, también un conjunto extra de train, alrededor de 35 GB en imágenes (2000*3000px aproximadamente, en formato .jpg), por lo que debemos aplicar técnicas para poder reducirlas. A simple vista, se ven imágenes de fondo verde, otras a color, enfocadas de distintos puntos, por lo que, además de reducirlas, se podría tratar de hacerlas más uniformes, en blanco y negro por ejemplo, utilizar data augmentation o aumento de datos, respetar la relación de aspecto, etc.
 
 Para comprobar si el conjunto de datos es balanceado o no-balanceado, necesitamos saber cuantos registros hay de cada variable de clase. Hasta 1.5 se considera clases balanceadas, poseemos tres tipos de clases:
 - Tipo 1, con 250
@@ -205,34 +205,40 @@ utilizadas y análisis crı́tico de su utilidad en el problema.
 
 Discusión de las técnicas y herramientas de clasificación empleadas, justificación de su elección.
 
+Descripción y discusión de las soluciones obtenidas, incidiendo en la interpretación de los resultados. Análisis comparativo en caso de utilizar diferentes técnicas y/o parámetros de configuración en diferentes aproximaciones.
+
+### Herramientas
+
 Hemos utilizado [Keras](https://keras.io/), una librería de Python para Deep Learning, con [Tensorflow](https://www.tensorflow.org/) como backend, una librería de Python para computación numérica, con un equipo con una GPU (Unidad de Procesamiento Gráfico) antigua (pero para suerte nuestra, aún podía ejecutar esta herramienta), y con otro equipo (con un para de años) con CPU (Unidad de Procesamiento Central) solamente. Los tiempo con CPU estaban sobre el doble (o un poco más) que con GPU, lo que delata que no se trata de una GPU de última generación.
 
 Además nos hemos valido de [Scikit-learn](http://scikit-learn.org), una librería de Python para Machine Learning, para realizar predicciones con algoritmos de clasificación sobre las características extraídas de las CNNs.
 
-### Modelo propio
+La decisión de utilizar de estas herramientas es porqué son las más populares en el ámbito de la competencia, en la misma página de Kaggle hay mucha documentación proporcionada por la comunidad: como discusiones, tutoriales, etc. Además hoy por hoy, Tensorflow se ganado el mercado de Deep Learning, que con Keras se logra abstraerla bastante, pudiendo aprovecharla en tan sólo pocas líneas. Intentamos utilizar además las herramientas sugeridas en la asignatura sin éxito, puede consultarse más abajo el Apartado *Otras herramientas* para más detalles.
 
-### Learning from scratch vs fine-tuning
-
-### Uso de CNNs con Machine Learning
-
-### Post-procesamiento OVO
-
-
-### Otros
-### Feature maps
-Con VGG16, red entrenada y fine-tuning, Red completa y Última capa
-
-- [ ] ensambles, etc.
-
-Descripción y discusión de las soluciones obtenidas, incidiendo en la interpretación de los resultados. Análisis comparativo... en caso de utilizar diferentes técnicas y/o parámetros de configuración en diferentes aproximaciones.
-
-
-
-### Otras herramientas
+#### Otras herramientas
 
 Primeramente hemos intentado utilizar las herramientas propuestas en clase, [Intel Deep Learning SDK](https://software.intel.com/en-us/deep-learning-training-tool) y [MXNet](http://mxnet.io/api/r/index.html) con R. La primera presentó muchos problemas a la hora de la instalación, que una vez subsanados, al ser una herramienta en versión beta, no iba muy bien de rendimiento en local sobre Linux: tiempos de cómputo altos dejando inutilizado el ordenador para otras tareas, incluso a veces la herramienta daba fallos posteriores a la instalación y uso que que la dejaba no funcional. Pero creemos que en un futuro sería una herramienta muy completa, puesto que se pueden utilizar varias técnicas a tan sólo un clic. La segunda, como veníamos familiarizados con ella (al utilizarlas en prácticas), quisimos montarla sobre GPU, pero el resultado no fue bueno, con o sin GPU no se completaban las tareas, ya que R Studio, no podía funcionar del todo bien con MXNet.
 
-Además de las anteriores, intentamos aprovechar el [clúster Colfax](https://colfaxresearch.com/kaggle-2017/) con 256 cores con Keras. Utilizando como backend Theano, nos fue imposible instalar algunos módulos de Python, puesto que utilizan su propia arquitectura y hay algunos paquetes, módulos o versiones faltantes, y el camino para hacerlo funcionar era largo y extenso; con TensorFlow como backend, solo corría en la increíble cantidad de un core solamente, con un tiempo de cómputo de un ordenador stándart mucho menor. Para lo que si nos fue útil, fue para el tratamiento de imágenes, donde si pudimos aprovechar la capacidad de cómputo de este clúster. Incluso hemos intentando contratar instancias de [Amazon Web Services (AWS)](https://aws.amazon.com/es/ec2/Elastic-GPUs/) con GPU con nuestras cuentas de estudiante pero no era posible utilizar éstas debido a las limitaciones de dichas cuentas.
+Además de las anteriores, intentamos aprovechar el [clúster Colfax](https://colfaxresearch.com/kaggle-2017/) con 256 cores con Keras. Utilizando como backend Theano, nos fue imposible instalar algunos módulos de Python, puesto que utilizan su propia arquitectura y hay algunos paquetes, módulos o versiones faltantes, y el camino para hacerlo funcionar era largo y extenso; con TensorFlow como backend, solo corría en la increíble cantidad de un core solamente, con un tiempo de cómputo de un ordenador stándart mucho menor. Para lo que si nos fue útil, fue para el tratamiento de imágenes, donde si pudimos aprovechar la capacidad de cómputo de este clúster. Además en el preprocesamiento, como se mencionó anteriormente utilizamos EBImage, una librería de R para el tratamiento de imágenes.
+
+Incluso hemos intentando contratar instancias de [Amazon Web Services (AWS)](https://aws.amazon.com/es/ec2/Elastic-GPUs/) con GPU con nuestras cuentas de estudiante pero no era posible utilizar éstas debido a las limitaciones de dichas cuentas.
+
+### Técnicas
+
+#### Modelo propio
+
+#### Learning from scratch vs fine-tuning
+
+#### Uso de CNNs con Machine Learning
+
+#### Post-procesamiento OVO
+
+#### Otros
+
+#### Feature maps
+Con VGG16, red entrenada y fine-tuning, Red completa y Última capa
+
+- [ ] ensambles, etc.
 
 ### Consideraciones
 
@@ -246,13 +252,12 @@ Tiempos de ejecución
 
 ## 4. Conclusiones y trabajos futuros
 
-Breve resumen de las técnicas aplicadas y de los resulta-
-dos obtenidos, ası́ como ideas de ...
+Breve resumen de las técnicas aplicadas y de los resultados obtenidos.
 
 ### Trabajo futuro
-... para continuar mejorando las soluciones desarrolladas.
+... ideas para continuar mejorando las soluciones desarrolladas.
 
-Se podría aplicar técnicas como features extraction sobre las imágenes, aunque eso requiere conocer a fondo librerías como OpenCV, que se aleja del objetivo de la asignatura y requiere su tiempo.
+Se podría aplicar técnicas como *features extraction* sobre las imágenes, aunque eso requiere conocer a fondo herramientas como [OpenCV](http://opencv.org/) o [SciLab](http://www.scilab.org/), que se alejan del objetivo de la asignatura y requieren su esfuerzo de aprendizaje. En [11] mencionan que es útil para detectar y aislar diversas porciones o características de una imagen, particularmente importante en el área del *reconocimiento óptico de caracteres*. Existen técnicas de bajo nivel como la detección de bordes, o esquinas, entre otros, teniendo en cuenta la curvatura y el movimiento de la imagen; de forma basada, como umbrales, extracción de blob, o "Hough transform"; y otros de métodos flexibles, como formas parametrizables/deformables o contornos activos.
 
 Utilizar ensambles sobre CNN
 
@@ -342,6 +347,11 @@ Posición al cierre de la primera etapa: 160
 <p id="10">
 
 [10]: P. Schmidt (n.d). Cervix EDA & Model selection. Recuperado en Junio de 2017, desde <https://www.kaggle.com/philschmidt/cervix-eda-model-selection>
+
+</p>
+
+<p id="10">
+[11]: Feature extraction. (2017, mayo 12). En Wikipedia. Recuperado a partir de https://en.wikipedia.org/w/index.php?title=Feature_extraction&oldid=779974336
 
 </p>
 
