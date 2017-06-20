@@ -179,15 +179,15 @@ axes[0].set_xlabel("image count")
 type_aggregation_p.plot.barh(ax=axes[1])
 axes[1].set_xlabel("training size fraction")
 ```
-<img src="https://www.kaggle.io/svf/1263512/8dd58488255be0d7f6798385495dd5cb/__results___files/__results___5_2.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 400px; height: auto;"/>
+<img src="https://www.kaggle.io/svf/1263512/8dd58488255be0d7f6798385495dd5cb/__results___files/__results___5_2.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 450px; height: auto;"/>
 
 Lo mismo sucede sobre el conjunto de entrenamiento adicional (6734).
 
-<img src="https://www.kaggle.io/svf/1263512/8dd58488255be0d7f6798385495dd5cb/__results___files/__results___11_2.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 400px; height: auto;"/>
+<img src="https://www.kaggle.io/svf/1263512/8dd58488255be0d7f6798385495dd5cb/__results___files/__results___11_2.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 450px; height: auto;"/>
 
 Como era de esperarse al utilizar el conjunto total (8215), la tendencia es la misma.
 
-<img src="https://www.kaggle.io/svf/1263512/8dd58488255be0d7f6798385495dd5cb/__results___files/__results___15_2.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 400px; height: auto;"/>
+<img src="https://www.kaggle.io/svf/1263512/8dd58488255be0d7f6798385495dd5cb/__results___files/__results___15_2.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 450px; height: auto;"/>
 
 Como se ven en lás imágenes, el conjunto de datos no es balanceado, tiene una cantidad considerable de imágenes y de gran tamaño. En el siguiente apartado hablaremos de los métodos de Preprocesamiento aplicados a este conjunto.
 
@@ -196,28 +196,43 @@ Como se ven en lás imágenes, el conjunto de datos no es balanceado, tiene una 
 Descripción y discusión de las técnicas de preprocesamiento
 utilizadas y análisis crı́tico de su utilidad en el problema.
 .
-- [ ] Integración y detección de conflictos e inconsistencias en los datos: valores perdidos,
-valores fuera de rango, ruido, etc.
+- [ ] Integración y detección de conflictos e inconsistencias en los datos: valores perdidos, valores fuera de rango, ruido, etc.
 - [ ] Transformaciones: normalización con OpenCV, agregación, generación de caracterı́sticas adicionales, etc.
 - [ ] Reducción de datos: técnicas utilizadas para selección de caracterı́sticas, selección de ejemplos, discretización, agrupación de valores, etc.
 - [ ] Aumento de datos: técnicas utilizadas para incrementar la cantidad de datos disponibles.
 
 ## 3. Técnicas de clasificación y discusión de resultados
 
-Discusión de las técnicas y herramientas de clasificación empleadas, justificación de su elección. Por ejemplo:
-- [ ] Learning from scratch vs fine-tuning
-- [ ] Uso de CNNs + OVO
-- [ ] Post-procesamiento OVO
+Discusión de las técnicas y herramientas de clasificación empleadas, justificación de su elección.
 
-Otros:
-- [ ] feature maps,
+Hemos utilizado [Keras](https://keras.io/), una librería de Python para Deep Learning, con [Tensorflow](https://www.tensorflow.org/) como backend, una librería de Python para computación numérica, con un equipo con una GPU (Unidad de Procesamiento Gráfico) antigua (pero para suerte nuestra, aún podía ejecutar esta herramienta), y con otro equipo (con un para de años) con CPU (Unidad de Procesamiento Central) solamente. Los tiempo con CPU estaban sobre el doble (o un poco más) que con GPU, lo que delata que no se trata de una GPU de última generación.
+
+Además nos hemos valido de [Scikit-learn](http://scikit-learn.org), una librería de Python para Machine Learning, para realizar predicciones con algoritmos de clasificación sobre las características extraídas de las CNNs.
+
+### Modelo propio
+
+### Learning from scratch vs fine-tuning
+
+### Uso de CNNs con Machine Learning
+
+### Post-procesamiento OVO
+
+
+### Otros
+### Feature maps
+Con VGG16, red entrenada y fine-tuning, Red completa y Última capa
+
 - [ ] ensambles, etc.
 
 Descripción y discusión de las soluciones obtenidas, incidiendo en la interpretación de los resultados. Análisis comparativo... en caso de utilizar diferentes técnicas y/o parámetros de configuración en diferentes aproximaciones.
 
-### Herramientas
 
-Primeramente hemos intentado utilizar las herramientas propuestas en clase, [Intel Deep Learning SDK]() y [MXNet](), además del [clúster Colfax]() con 256 cores con Keras y como backend Theano, imposible instalar algunos módulos de Python puesto que utilizan su propia arquitectura, y TensorFlow, que solo corría en un core solamente. También hemos intentando contratar instancias con AWS con GPU con cuentas de estudiante y no era posible.
+
+### Otras herramientas
+
+Primeramente hemos intentado utilizar las herramientas propuestas en clase, [Intel Deep Learning SDK](https://software.intel.com/en-us/deep-learning-training-tool) y [MXNet](http://mxnet.io/api/r/index.html) con R. La primera presentó muchos problemas a la hora de la instalación, que una vez subsanados, al ser una herramienta en versión beta, no iba muy bien de rendimiento en local sobre Linux: tiempos de cómputo altos dejando inutilizado el ordenador para otras tareas, incluso a veces la herramienta daba fallos posteriores a la instalación y uso que que la dejaba no funcional. Pero creemos que en un futuro sería una herramienta muy completa, puesto que se pueden utilizar varias técnicas a tan sólo un clic. La segunda, como veníamos familiarizados con ella (al utilizarlas en prácticas), quisimos montarla sobre GPU, pero el resultado no fue bueno, con o sin GPU no se completaban las tareas, ya que R Studio, no podía funcionar del todo bien con MXNet.
+
+Además de las anteriores, intentamos aprovechar el [clúster Colfax](https://colfaxresearch.com/kaggle-2017/) con 256 cores con Keras. Utilizando como backend Theano, nos fue imposible instalar algunos módulos de Python, puesto que utilizan su propia arquitectura y hay algunos paquetes, módulos o versiones faltantes, y el camino para hacerlo funcionar era largo y extenso; con TensorFlow como backend, solo corría en la increíble cantidad de un core solamente, con un tiempo de cómputo de un ordenador stándart mucho menor. Para lo que si nos fue útil, fue para el tratamiento de imágenes, donde si pudimos aprovechar la capacidad de cómputo de este clúster. Incluso hemos intentando contratar instancias de [Amazon Web Services (AWS)](https://aws.amazon.com/es/ec2/Elastic-GPUs/) con GPU con nuestras cuentas de estudiante pero no era posible utilizar éstas debido a las limitaciones de dichas cuentas.
 
 ### Consideraciones
 
@@ -234,9 +249,10 @@ Tiempos de ejecución
 Breve resumen de las técnicas aplicadas y de los resulta-
 dos obtenidos, ası́ como ideas de ...
 
-Trabajo futuro... para continuar mejorando las soluciones desarrolladas.
+### Trabajo futuro
+... para continuar mejorando las soluciones desarrolladas.
 
-Se podría aplicar técnicas como features extraction sobre las imágeness, aunque eso requiere conocer a fondo librerías como OpenCV, que se aleja del objetivo de la asignatura y requiere su tiempo.
+Se podría aplicar técnicas como features extraction sobre las imágenes, aunque eso requiere conocer a fondo librerías como OpenCV, que se aleja del objetivo de la asignatura y requiere su tiempo.
 
 Utilizar ensambles sobre CNN
 
@@ -328,6 +344,9 @@ Posición al cierre de la primera etapa: 160
 [10]: P. Schmidt (n.d). Cervix EDA & Model selection. Recuperado en Junio de 2017, desde <https://www.kaggle.com/philschmidt/cervix-eda-model-selection>
 
 </p>
+
+<!-- Salto de página -->
+<div style="page-break-before: always;"></div>
 
 ## Anexos
 
