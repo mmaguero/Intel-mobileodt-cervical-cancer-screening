@@ -193,13 +193,49 @@ Como se ven en lás imágenes, el conjunto de datos no es balanceado, tiene una 
 
 ## 2. Preprocesamiento de datos
 
-Descripción y discusión de las técnicas de preprocesamiento
-utilizadas y análisis crı́tico de su utilidad en el problema.
-.
-- [ ] Integración y detección de conflictos e inconsistencias en los datos: valores perdidos, valores fuera de rango, ruido, etc.
-- [ ] Transformaciones: normalización con OpenCV, agregación, generación de caracterı́sticas adicionales, etc.
-- [ ] Reducción de datos: técnicas utilizadas para selección de caracterı́sticas, selección de ejemplos, discretización, agrupación de valores, etc.
-- [ ] Aumento de datos: técnicas utilizadas para incrementar la cantidad de datos disponibles.
+Teniendo en cuenta que nos encontramos ante un problema de reconocimiento de imagenes las técnicas típicas que hemos aprendido de preprocesamiento como eliminación de outlayers, imputación de valores perdidos,... no son aplicables. Por ello hemos empleado algunas técnicas de preprocesamiento de imagenes.
+
+### 2.1. Redimensionado
+Como se ha comentado ya las imagenes originales tienen una resolución muy elevada, cosa que las hace inmanegables en la práctica teniendo en cuenta nuestra capacidad computacional (un ordenador sin GPU y otro con una GPU de hace 4 años). Inicialmente partimos de unas imágenes redimensionadas por el profesor Juan Gómez en tamaño 256 x 256 px cambiando las proporciones originales de las imagenes (que son distintas entre sí a su vez). Con el objetivo de lograr que ocuparan menos procedimos a redimensionar nosotros mismos las imagenes guardandolas en formato `.jpg` en lugar del `.png` en el que se encontraban las imágenes de Juan Gómez, ya que este formato aplica una compresión más fuerte a las imagenes aunque se produzca una pérdida de calidad de las mismas. Para llevar a cabo este redimensionado he utilizado el paquete de R [**EBImage**](https://www.bioconductor.org/packages/release/bioc/html/EBImage.html) como se recomendó en las clases de prácticas. Tras un elevado tiempo de computo se generaron 3 carpetas con las imágenes de train, test y train + adicionales respectivamente. Aun estas imágenes resultaban demasiado grandes para nuestros dispositivos, tras leer las imagenes en arrays de datos guardabamos estos arrays en disco en un único fichero para facilitar la lectura posterior, ocupando un total de 7 GB entre los archivos con las imagenes de test y las de train + adicionales. Por lo tanto estas imagenes saturaban nuestra memoria RAM y nos vimos obligados a redimensionarlas a un tamaño de 64 x 64 px.
+
+Con estas imagenes ya pudimos empezar a trabajar en modelos básicos, pero decidimos intentar mejorar la redimensión, para redimensionar las imagenes a 64x64 se utilizo la conocida librería [**OpenCV**](http://opencv.org/) por ello estuvimos consultando la documentación de su método `resize()` donde parece intesante comprobar los métodos de interpolación utilizados para la redimensión, en la siguiente imagen se puede apreciar una imagen del dataset de train a la izquierda y sus redimensiones en 256x256 utilizando todas las interpolaciones disponibles a la derecha:
+
+![distintas interpolaciones](doc/imgs/ResizeInterpolations.PNG)
+
+Siguiendo las recomendaciones de la documentación para hacer imágenes más pequeñas se recomienda la interpolación CV_INTER_AREA por lo que es la que he aplicado, teniendo en cuenta que siempre voy a redimensionar imágenes para hacerlas pequeñas, no más grandes.
+
+Otra cosa que se nos ocurrió para poder mejorar la calidad de los datos era hacer una redimensión que respete las proporciones originales de las imágenes, ya que estas son diferentes (algunas más anchas que altas y viceversa) para ello llevamos a cabo una redimensión alternativa que respetaba las proporciones a costa de recortar algunos trozos periféricos de las imágenes. Esto podría parecer perjudicial, pero la gran mayoria de las imagenes la región de interes se encuentra centrada, bien en un circulo como se aprecia en la imagen previa o bien con su fondo original, pero en cualquiera de los casos la zona uterina se encuentra en el centro. En la siguiente imagen podemos comparar los resultados viendo la imagen original a la izquierda y los dos tipos de redmiensiones en 256x256.
+
+![Redimensión con cambio de proporciones](doc/imgs/ResizeAspectRatio.PNG)
+
+A pesar de esto no hemos podido encontrar resultados significativos al uso del dataset redimensionado directamente o respetando las proporciones originales.
+
+Adionalmente hemos creado diversas redimensiones para distintos modelos que no admitian el tamaño 64x64 y para poder probar con tamaños superiores, pero con un coste computacional demasiado elevado.
+
+### 2.2. Transformaciones
+Para facilitar la predicción a los modelos con este dataset hemos visto en múltiples ejemplos y familias de modelos distintos que suele ser recomendable normalizar los datos antes de pasarlos al modelo, es decir cambiar el valor de los pixeles de cada uno de los canales del rango 0-255 al rango 0-1, para ello dividimos todos los valores de los pixeles entre 255 tras redimensionar.
+
+### 2.3. Aumento de datos
+Partiendo de [3] hemos intentado generar más imagenes a partir las existentes utilizando un método para extraer el area de interes o ROI en inglés, este método simplemente normaliza las imágenes pasandolas a blanco y negro y hace que aquellos pixeles cuyo valor sea menor 0,7 (no sean demasiado claros) se conserven en la imagen generada y aquellos muy claros se pongan a negro, este método es demasiado aleatorio para generar imagenes nuevas, ya que dependiendo de las características de cada imagen algunas si que funcionan bíen, pero aquellas que tienen más luz pierden demasiada información.
+
+En la siguiente imagen podemos apreciar la imagen original usada previamente para comparar con su homologa tras pasar por el método de extracción del ROI y redimensión a 256x256
+![Imagen con su ROI](doc/imgs/ROI.PNG)
+
+Como se comentará en más detalle en el siguiente apartado nuestra principal herramienta ha sido la librería de Deep Learning Keras, esta libraría contiene muchas utilidades adcionales para problemas de reconocimiento de imágenes, entre ellas métodos para realizar aumento de datos realizando transformaciones básicas como zooms, desplazamientos verticales u horizontales... en concreto hablo de `ImageDataGenerator`. Siguiendo los consejos de [8] creo una instancia de dicha clase con los siguientes parámetros:
+```python
+datagen = ImageDataGenerator(
+           rotation_range=40,
+           width_shift_range=0.1,
+           height_shift_range=0.1,
+           rescale=1. / 255,
+           shear_range=0.2,
+           zoom_range=0.3,
+           horizontal_flip=True,
+           vertical_flip=True,
+           fill_mode='nearest')
+```
+Donde se establecen las transformaciones a llevar a cabo, se puede ver que se aplicarán rotaciones aleatorias de hasta 40º, desplazamientos horizontales y verticales de como mucho el 10% de la imagen en ambas direcciones, zooms de hasta el 30%, flips horizontales y verticales así como [transformaciones shear](https://en.wikipedia.org/wiki/Shear_mapping). En la siguiente imagen se aprecia la imagen original a la izquierda y ejemplos de las que se generan con aumento de datos utilizando la mencionada instancia de `ImageDataGenerator`:
+![aumento de datos](doc/imgs/DataAugmentation.PNG)
 
 ## 3. Técnicas de clasificación y discusión de resultados
 
