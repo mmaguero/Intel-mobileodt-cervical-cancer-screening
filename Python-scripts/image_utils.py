@@ -36,7 +36,7 @@ class ImageUtils:
             print(path)
             return [path, {'size': [0, 0]}]
 
-    def checkResize(self, imgPath):
+    def checkResizeInterpolations(self, imgPath):
         img = cv2.imread(imgPath)
         cv2.namedWindow("test", cv2.WINDOW_NORMAL)
         cv2.imshow('test', img)
@@ -56,6 +56,31 @@ class ImageUtils:
         cv2.imshow('inter_LANCZOS4', inter_LANCZOS4)
         cv2.waitKey(0)
 
+    def checkResizeProportions(self, imgPath):
+        img = cv2.imread(imgPath)
+        cv2.namedWindow("test", cv2.WINDOW_NORMAL)
+        cv2.imshow('test', img)
+
+        # use cv2.resize(img, (64, 64), cv2.INTER_LINEAR)
+        ret1 = self.resize_img(imgPath)
+        ret2 = self.resize_img_keep_aspect_ratio(imgPath)
+
+        changedPropImg = ret1[1]
+        originalPropImg = ret2[1]
+
+        cv2.imshow('Original Aspect Ratio', originalPropImg)
+        cv2.imshow('Changed Aspect Ratio', changedPropImg)
+        cv2.waitKey(0)
+
+    def checkROI(self, imgPath):
+        img = cv2.imread(imgPath)
+        cv2.namedWindow("test", cv2.WINDOW_NORMAL)
+        cv2.imshow('test', img)
+
+        # use cv2.resize(img, (64, 64), cv2.INTER_LINEAR)
+        roiImg = self.roi_single_img(imgPath)
+        cv2.imshow('ROI', roiImg)
+        cv2.waitKey(0)
     #########
     ##########
     '''
@@ -418,5 +443,5 @@ class ImageUtils:
 
 if __name__ == '__main__':
     iUtils = ImageUtils(imgSize=256, useAditional=False, keepAspectRatio=True, useKaggleData=False)
-    iUtils.checkResize("../data/train/Type_1/1093.jpg")
+    iUtils.checkROI("../data/train/Type_1/1093.jpg")
     #iUtils.getTestTarget()

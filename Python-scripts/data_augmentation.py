@@ -59,5 +59,5 @@ class DataAugmentation:
 
 
 if __name__ == '__main__':
-    DataAugmentation.dataAugmentationPreview(imagePath="../data/train_256/Type_2/178.jpg",
+    DataAugmentation.dataAugmentationPreview(imagePath="../data/train/Type_1/1093.jpg",
                                              writeDir="../data/augmentationPreview/")
