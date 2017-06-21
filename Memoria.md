@@ -263,6 +263,8 @@ Incluso hemos intentando contratar instancias de [Amazon Web Services (AWS)](htt
 
 #### Learning from scratch
 Partiendo del ejemplo disponible en [3] creamos una red neuronal convolutiva con las siguientes capas:
+![Arquitectura de la red inicial](doc/imgs/model_21-06-2017_17-34.png)
+Con este modelo lanzamos una primera ejecución con 320 épocas alcanzando un total de **buscar puntuación** aplicando el aumento de datos básico con algo de zoom y rotación realizado en [3]
 
 Modelo normal sin extra
 probando varias optimizaciones y mas entrenamiento
