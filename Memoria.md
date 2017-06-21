@@ -281,10 +281,25 @@ Con el objetivo de sacarle el máximo partido a este modelo decidimos realizar u
 
 Obteniendo como mejor modelo aquel con parámetros adam y tamaño batch 32 obteniendo un 0,9198 sobre validación, usamos ese modelo como base y lo entrenamos durante más epocas pero los resultados no mejoraban por lo que no llegamos a realizar una subida con dicho modelo.
 
+
+#### Red pre-entrenada
+
+Hemos usado Inception V3 (GoogleNet) y VGG16 (Visual Geometry Group de la Universidad Oxford) como redes pre-entrenadas, puesto que la primera nace en Google y cuenta con su aval, y la segunda, porque refieren en la comunidad de Kaggle que da buenos resultados con este problema, y por sobre todo, es manejable con nuestras capacidades de cómputo. Inception V3, era prácticamente imposible utilizarlo en nuestros ordenadores, reducimos las imágenes a 150\*150 px, puesto que este modelo exige 139\*139 px como mínimo, al contrario de VGG16, que con 48\*48 px basta, por ello con VGG16 utilizamos conjunto de imágenes de 64\*64 px.
+
+Finalmente sólo hemos hecho ejecuciones con Inception V3, porque VGG16, al ser más ligera de capas y requisitos, creímos conveniente utilizarla para fine-tuning. Con 90 épocas y 12 horas de cómputo (en el ordenador con GPU) los resultados obtenidos no fueron muy buenos utilizando los pesos de Imagenet. El conjunto de imágenes utilizadas en estas ejecuciones eran respetando el *aspect ratio*, con data augmentation y tamaños de 150\*150px, lo cuál hacía que ocupe toda la memoria RAM del equipo (llegando a 12 GB, ocupando 4 GB en memoria de intercambio).
+
 #### Fine-tuning
-#### Learning from scratch vs fine-tuning
+
+En [8] explican que para realizar el fine-tuning, en nuestro caso, es favorable primero entrenar el clasificador de nivel superior, y sólo entonces comenzar a ajustar los pesos convolucionales a su lado. Por ello, elegimos ajustar sólo el último bloque convolucional en lugar de toda la red para evitar overfitting, ya que toda la red tendría una gran capacidad entrópica y, por lo tanto, una fuerte tendencia a overfit. Las características aprendidas por los bloques convolucionales de bajo nivel son más generales, menos abstractas que las encontradas más arriba, por lo que es razonable mantener los primeros bloques fijos (características más generales) y ajustar sólo la última (más características especializadas). El fine-tuning debe hacerse con una velocidad de aprendizaje muy lenta, típicamente con el optimizador de SGD en lugar de RMSProp por ejemplo, para asegurarse de que la magnitud de las actualizaciones se mantiene muy pequeña, para no arruinar las funciones previamente aprendidas.
+
+
+<img src="https://blog.keras.io/img/imgclf/vgg16_modified.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 300px; height: auto; display: block; margin: auto;"/>
+
+Partiendo del script [5], [6], [7] y [8] utilizado para lanzar ejecuciones con una red pre-entrenada, logramos adaptarlo para fine-tuning. Decidimos realizar las pruebas sobre VGG16 por ser más ligero, debido a nuestras capacidades de cómputo, con pesos de Imagenet e imágenes de 64\*64 px, con data augmentation, respetando el *aspect ratio*. Para fine-tuning, tal como lo hicimos con la red pre-entrenada, poníamos las capas de VGG16 o Inception V3 a no entrenables, y le agregabámos la salida adaptada a nuestro problema; no obstante, a diferencia de una red pre-entrenada, es necesario realizar un entrenamiento con las capas de abajo, para VGG16 tomamos las últimas 15. Lastimosamente, aunque el resultado fue bueno, no fue el esperado, puesto que quedo por debajo de nuestro modelo con from scratch por unas décimas, ya que esperabámos sea el modelo que nos catapulte a un mejor resultado en la competición. En total hemos corrido 60 épocas a las capas nuevas, y 90 a fine-tuning, en 13 horas de cómputo con el equipo de GPU.
 
 #### Uso de CNNs con Machine Learning
+
+En [8], [9] y [14]
 
 
 #### OVA
@@ -298,7 +313,7 @@ Nos hemos decantado por probar esta última alternativa, ya que nos parecia más
 #### Feature maps
 Con VGG16, red entrenada y fine-tuning, Red completa y Última capa
 
-- [ ] ensambles, etc.
+### Comparativa de soluciones
 
 ### Consideraciones
 
@@ -319,7 +334,7 @@ Breve resumen de las técnicas aplicadas y de los resultados obtenidos.
 
 Se podría aplicar técnicas como *features extraction* sobre las imágenes, aunque eso requiere conocer a fondo herramientas como [OpenCV](http://opencv.org/) o [SciLab](http://www.scilab.org/), que se alejan del objetivo de la asignatura y requieren su esfuerzo de aprendizaje. En [11] mencionan que es útil para detectar y aislar diversas porciones o características de una imagen, particularmente importante en el área del *reconocimiento óptico de caracteres*. Existen técnicas de bajo nivel como la detección de bordes, o esquinas, entre otros, teniendo en cuenta la curvatura y el movimiento de la imagen; de forma basada, como umbrales, extracción de blob, o "Hough transform"; y otros de métodos flexibles, como formas parametrizables/deformables o contornos activos.
 
-Utilizar ensambles sobre CNN
+Utilizar ensambles sobre CNN o ML
 
 Aplicar OVO además de OVA, de una manera manual, puesto que existen módulos como scikit-learn de Python, con modelos como SVM que permite aplicar OVO sobre un conjunto de datos.
 
@@ -418,6 +433,18 @@ Posición al cierre de la primera etapa: 160
 <p id="12">
 [12]: A. Oleś et al (2017, abril 24). Introduction to EBImage. Recuperado a partir de <https://bioconductor.org/packages/release/bioc/vignettes/EBImage/inst/doc/EBImage-introduction.html>
 
+</p>
+
+<p id="13">
+[13]: Karpathy, A. (n.d.). ConvNetJS Trainer Comparison on MNIST. Recuperado 21 de junio de 2017, a partir de <http://cs.stanford.edu/people/karpathy/convnetjs/demo/trainers.html>
+</p>
+
+<p id="14">
+[14]: Ruder, S. (2016, enero 19). An overview of gradient descent optimization algorithms. Recuperado 21 de junio de 2017, a partir de <http://sebastianruder.com/optimizing-gradient-descent/>
+</p>
+
+<p id="15">
+[15]: Takuya. (n.d.). Using pre-trained network. Recuperado 21 de junio de 2017, a partir de <https://www.kaggle.com/katotakuya/using-pre-trained-network>
 </p>
 
 **Añadir enlaces de opencv y EBImage**
