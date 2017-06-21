@@ -15,16 +15,16 @@ imgSize = 64
 loadFeatures = True
 RDM = 17
 useAditional = True
-dataAugmentation = False
+dataAugmentation = True
 
-clasif = "RF"  # RF/SVM
+clasif = "SVM"  # RF/SVM
 SEPARATOR = "=============================================================" + \
             "==================="
 
 
 def svc(traindata, trainlabel, validData, validLabel, testData):
     print("Start training SVM...\n" + SEPARATOR)
-    svcClf = SVC(kernel="rbf", verbose=True, decision_function_shape='ovo', probability=True, cache_size=900)
+    svcClf = SVC(kernel="rbf", verbose=True, decision_function_shape='ovo', probability=True, cache_size=1500)
     svcClf.fit(traindata, trainlabel)
 
     score = svcClf.score(validData, validLabel)

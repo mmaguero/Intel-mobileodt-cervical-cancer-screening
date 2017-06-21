@@ -245,7 +245,7 @@ Descripción y discusión de las soluciones obtenidas, incidiendo en la interpre
 
 ### Herramientas
 
-Hemos utilizado [Keras](https://keras.io/), una librería de Python para Deep Learning, con [Tensorflow](https://www.tensorflow.org/) como backend, una librería de Python para computación numérica, con un equipo con una GPU (Unidad de Procesamiento Gráfico) antigua (pero para suerte nuestra, aún podía ejecutar esta herramienta), y con otro equipo (con un para de años) con CPU (Unidad de Procesamiento Central) solamente. Los tiempo con CPU estaban sobre el doble (o un poco más) que con GPU, lo que delata que no se trata de una GPU de última generación.
+Hemos utilizado [Keras](https://keras.io/), una librería de Python para Deep Learning, con [Tensorflow](https://www.tensorflow.org/) como backend, una librería de Python para computación numérica, en un equipo con una GPU (Unidad de Procesamiento Gráfico) antigua (pero para suerte nuestra, aún podía ejecutar esta herramienta), y con otro equipo (con un par de años) con CPU (Unidad de Procesamiento Central) solamente. Los tiempo con CPU estaban sobre el doble (o un poco más) que con GPU, lo que delata que no se trata de una GPU de última generación.
 
 Además nos hemos valido de [Scikit-learn](http://scikit-learn.org), una librería de Python para Machine Learning, para realizar predicciones con algoritmos de clasificación sobre las características extraídas de las CNNs.
 
@@ -253,21 +253,24 @@ La decisión de utilizar de estas herramientas es porqué son las más populares
 
 #### Otras herramientas
 
-Primeramente hemos intentado utilizar las herramientas propuestas en clase, [Intel Deep Learning SDK](https://software.intel.com/en-us/deep-learning-training-tool) y [MXNet](http://mxnet.io/api/r/index.html) con R. La primera presentó muchos problemas a la hora de la instalación, que una vez subsanados, al ser una herramienta en versión beta, no iba muy bien de rendimiento en local sobre Linux: tiempos de cómputo altos dejando inutilizado el ordenador para otras tareas, incluso a veces la herramienta daba fallos posteriores a la instalación y uso que que la dejaba no funcional. Pero creemos que en un futuro sería una herramienta muy completa, puesto que se pueden utilizar varias técnicas a tan sólo un clic. La segunda, como veníamos familiarizados con ella (al utilizarlas en prácticas), quisimos montarla sobre GPU, pero el resultado no fue bueno, con o sin GPU no se completaban las tareas, ya que R Studio, no podía funcionar del todo bien con MXNet.
+Primeramente hemos intentado utilizar las herramientas propuestas en clase, [Intel Deep Learning SDK](https://software.intel.com/en-us/deep-learning-training-tool) y [MXNet](http://mxnet.io/api/r/index.html) con R. La primera presentó muchos problemas a la hora de la instalación, que una vez subsanados, al ser una herramienta en versión beta, no iba muy bien de rendimiento en local sobre Linux: tiempos de cómputo altos dejando inutilizado el ordenador para otras tareas, incluso a veces la herramienta daba fallos posteriores a la instalación y uso que que la dejaba no funcional. Pero creemos que en un futuro sería una herramienta muy completa, puesto que se pueden utilizar varias técnicas a tan sólo un clic. Tambíen pensamos que esta herramienta más orientada a ser desplegada en potentes servidores o clusters a los que accedan los usuarios de la herramienta mediante la interfaz web, que en un portatil de prestaciones normales y unos cuantos años de antigüedad como de los que disponemos actualmente. Sobre MXNET, como veníamos familiarizados con ella (al utilizarla en prácticas), quisimos montarla sobre GPU (dedicando 3 días para su compilación en un SO Windows), pero el resultado no fue bueno, con o sin GPU no se completaban las tareas, ya que R Studio, no podía funcionar del todo bien con MXNet.
 
-Además de las anteriores, intentamos aprovechar el [clúster Colfax](https://colfaxresearch.com/kaggle-2017/) con 256 cores con Keras. Utilizando como backend Theano, nos fue imposible instalar algunos módulos de Python, puesto que utilizan su propia arquitectura y hay algunos paquetes, módulos o versiones faltantes, y el camino para hacerlo funcionar era largo y extenso; con TensorFlow como backend, solo corría en la increíble cantidad de un core solamente, con un tiempo de cómputo de un ordenador stándart mucho menor. Para lo que si nos fue útil, fue para el tratamiento de imágenes, donde si pudimos aprovechar la capacidad de cómputo de este clúster. Además en el preprocesamiento, como se mencionó anteriormente utilizamos EBImage, una librería de R para el tratamiento de imágenes.
+Además de las anteriores, intentamos aprovechar el [clúster Colfax](https://colfaxresearch.com/kaggle-2017/) ofrecido por Intel para los participantes en la competición de Kaggle. Este custer cuenta con instancias de 256 cores o 96 GB de RAM, por lo que parece prometedora su potencia. Utilizando Keras y Theano como backend, nos fue imposible instalar algunos módulos de Python, puesto que utilizan su propia arquitectura y hay algunos paquetes, módulos o versiones faltantes, y el camino para hacerlo funcionar era largo y extenso; con TensorFlow como backend, solo corría en un core proablemente debido a que no se encuentra disponible para la arquitectura de Intel, con un tiempo de cómputo de un ordenador stándart mucho menor. Para lo que si nos fue útil, fue para el tratamiento de imágenes, donde si pudimos aprovechar la capacidad de cómputo de este clúster. Además en el preprocesamiento, como se mencionó anteriormente utilizamos EBImage, una librería de R para el tratamiento de imágenes.
 
 Incluso hemos intentando contratar instancias de [Amazon Web Services (AWS)](https://aws.amazon.com/es/ec2/Elastic-GPUs/) con GPU con nuestras cuentas de estudiante pero no era posible utilizar éstas debido a las limitaciones de dichas cuentas.
 
 ### Técnicas
 
-#### Modelo propio
+#### Learning from scratch
+Partiendo del ejemplo disponible en [3] creamos una red neuronal convolutiva con las siguientes capas:
 
+Modelo normal sin extra
+probando varias optimizaciones y mas entrenamiento
+Hiperparameter Tunning
 #### Learning from scratch vs fine-tuning
 
 #### Uso de CNNs con Machine Learning
 
-#### Post-procesamiento OVO
 
 #### Otros
 
@@ -390,6 +393,9 @@ Posición al cierre de la primera etapa: 160
 [11]: Feature extraction. (2017, mayo 12). En Wikipedia. Recuperado a partir de https://en.wikipedia.org/w/index.php?title=Feature_extraction&oldid=779974336
 
 </p>
+
+**Añadir enlaces de opencv y EBImage**
+
 
 <!-- Salto de página -->
 <div style="page-break-before: always;"></div>
