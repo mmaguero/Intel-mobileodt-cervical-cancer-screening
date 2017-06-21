@@ -264,17 +264,30 @@ Incluso hemos intentando contratar instancias de [Amazon Web Services (AWS)](htt
 #### Learning from scratch
 Partiendo del ejemplo disponible en [3] creamos una red neuronal convolutiva con las siguientes capas:
 ![Arquitectura de la red inicial](doc/imgs/model_21-06-2017_17-34.png)
-Con este modelo lanzamos una primera ejecución con 320 épocas alcanzando un total de **buscar puntuación** aplicando el aumento de datos básico con algo de zoom y rotación realizado en [3]
+Con este modelo lanzamos una primera ejecución con 320 épocas alcanzando un total de 0.88509 aplicando el aumento de datos básico con tamaño de batch de 32 para la generación de imagenes y algo de zoom y rotación realizado en [3] y utilizando las imagenes adicionales de training normalizadas en tamaño 64x64 sin respetar las proporciones originales.
 
-Modelo normal sin extra
-probando varias optimizaciones y mas entrenamiento
-Hiperparameter Tunning
+Animados con este resultado y su tiempo de ejecución que no estaba nada mal (unos 10 s por epoca) decidimos probar a lanzar el mismo modelo utilizando clustar Colfax mencionado previamente, pero esta vez sin utilizar las imagenes adicionales y manteniendo el resto de parámetros iguales, en este caso lanzamos el modelo durante 600 epocas guardando el mejor modelo producido utilizando como criterio el logloss sobre el conjunto de validación. Este conjunto de validación es un subconjunto del de entrenamiento que no se le ha enseñado al modelo y se utiliza para hacerse una idea de como generaliza el modelo, es decir de lo bueno que será con el conjunto de test. El mejor modelo obtenido fue nuestra segunda subida en Kaggle puntuando un total de 1.30324, muy lejos de nuestro primer modelo, lo cual denota la importancia de tener más datos en este problema, ya que aún con las imagenes adicionales no son suficientes para entrenar modelos de Deep Learning. Esta ejecución tambien nos permitió percatarnos de los problemas con Colfax ya que los tiempos eran desorbitados en comparación con nuestros equipos, debido a que no paralelizaba con TensorFlow (tardó más de 24 h en finalizar la ejecución).
+
+Tras perder una mañana intentando configurar Colfax para ejecutar modelos usando Theano pasamos a intentar mejorar el modelo, para ello redujimos el porcentaje de instancias de training dedicadas a validación del 20 al 10 %, además nos pusimos a buscar distintos algoritmos de optimización para redes neuronales además del adamax que utilizaba por defecto nuestra red, buscando en diversos sitios vimos que adadelta parece minimizar el loss bastante bien como se ve en la siguiente gráfica de loss contra numero de ejemplos vistos por la red neuronal (aunque no se especifique la función de loss concreta)
+
+![Gráfica de valor de loss con distintas optimizaciones contra el numero de instancias vistas](doc/imgs/adadelta.png)
+
+Cambiando simplemente esos dos parámetros y entrenando durante 500 épocas llegamos conseguir un modelo con una puntuación de 0.841, nuestra mejor subida a Kaggle a pesar de haber probado otros métodos más avanzados.
+
+Con el objetivo de sacarle el máximo partido a este modelo decidimos realizar una optimización de los hiperparámetros de la red neuronal siguiendo los consejos de [4] que basícamente entrena todos los modelos para todas las combinaciones de los siguientes parametros:
+- Optimizadores: 'adadelta', 'adamax', 'adam'
+- Tamaño de batch: 16, 32, 64
+- Numero de épocas: 30
+
+Obteniendo como mejor modelo aquel con parámetros adam y tamaño batch 32 obteniendo un 0,9198 sobre validación, usamos ese modelo como base y lo entrenamos durante más epocas pero los resultados no mejoraban por lo que no llegamos a realizar una subida con dicho modelo.
+
+#### Fine-tuning
 #### Learning from scratch vs fine-tuning
 
 #### Uso de CNNs con Machine Learning
 
 
-#### Otros
+#### OVA
 
 #### Feature maps
 Con VGG16, red entrenada y fine-tuning, Red completa y Última capa
@@ -391,8 +404,13 @@ Posición al cierre de la primera etapa: 160
 
 </p>
 
-<p id="10">
-[11]: Feature extraction. (2017, mayo 12). En Wikipedia. Recuperado a partir de https://en.wikipedia.org/w/index.php?title=Feature_extraction&oldid=779974336
+<p id="11">
+[11]: Wikipedia (2017, mayo 12). Feature extraction. Recuperado a partir de <https://en.wikipedia.org/w/index.php?title=Feature_extraction&oldid=779974336>
+
+</p>
+
+<p id="12">
+[12]: A. Oleś et al (2017, abril 24). Introduction to EBImage. Recuperado a partir de <https://bioconductor.org/packages/release/bioc/vignettes/EBImage/inst/doc/EBImage-introduction.html>
 
 </p>
 
