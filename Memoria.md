@@ -292,14 +292,38 @@ Finalmente sólo hemos hecho ejecuciones con Inception V3, porque VGG16, al ser 
 
 En [8] explican que para realizar el fine-tuning, en nuestro caso, es favorable primero entrenar el clasificador de nivel superior, y sólo entonces comenzar a ajustar los pesos convolucionales a su lado. Por ello, elegimos ajustar sólo el último bloque convolucional en lugar de toda la red para evitar overfitting, ya que toda la red tendría una gran capacidad entrópica y, por lo tanto, una fuerte tendencia a sobreaprendizaje. Las características aprendidas por los bloques convolucionales de bajo nivel son más generales, menos abstractas que las encontradas más arriba, por lo que es razonable mantener los primeros bloques fijos (características más generales) y ajustar sólo la última (más características especializadas). El fine-tuning debe hacerse con una velocidad de aprendizaje muy lenta, típicamente con el optimizador de SGD en lugar de RMSProp por ejemplo, para asegurarse de que la magnitud de las actualizaciones se mantiene muy pequeña, para no arruinar las funciones previamente aprendidas.
 
-<img src="https://blog.keras.io/img/imgclf/vgg16_modified.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 300px; height: auto; display: block; margin: auto;"/>
+<img src="https://blog.keras.io/img/imgclf/vgg16_modified.png" alt="Fine-tuning con VGG16" style="width: 300px; height: auto; display: left; margin: auto;"/>
 
-Partiendo del script [5], [6], [7] y [8] utilizado para lanzar ejecuciones con una red pre-entrenada, logramos adaptarlo para fine-tuning. Decidimos realizar las pruebas sobre VGG16 por ser más ligero, debido a nuestras capacidades de cómputo, con pesos de Imagenet e imágenes de 64\*64 px, con data augmentation, respetando el *aspect ratio*. Para fine-tuning, tal como lo hicimos con la red pre-entrenada, poníamos las capas de VGG16 o Inception V3 a no entrenables, y le agregabámos la salida adaptada a nuestro problema; no obstante, a diferencia de una red pre-entrenada, es necesario realizar un entrenamiento con las capas de abajo, para VGG16 tomamos las últimas 15. Lastimosamente, aunque el resultado fue bueno, no fue el esperado, puesto que quedo por debajo de nuestro modelo con from scratch por unas décimas, ya que esperabámos sea el modelo que nos catapulte a un mejor resultado en la competición. En total hemos corrido 60 épocas a las capas nuevas, y 90 a fine-tuning, en 13 horas de cómputo con el equipo de GPU.
+Partiendo del script [5], [6], [7] y [8] utilizado para lanzar ejecuciones con una red pre-entrenada, logramos adaptarlo para fine-tuning. Decidimos realizar las pruebas sobre VGG16 por ser más ligero, debido a nuestras capacidades de cómputo, con pesos de Imagenet e imágenes de 64\*64 px, con data augmentation, respetando el *aspect ratio*. Para fine-tuning, tal como lo hicimos con la red pre-entrenada, poníamos las capas de VGG16 o Inception V3 a no entrenables, y le agregabámos la salida adaptada a nuestro problema; no obstante, a diferencia de una red pre-entrenada, es necesario realizar un entrenamiento con las capas de abajo, para VGG16 tomamos las últimas 15. Lastimosamente, aunque el resultado fue bueno, no fue el esperado, puesto que quedo por debajo de nuestro modelo con *from scratch* por unas décimas, ya que esperabámos sea el modelo que nos catapulte a un mejor resultado en la competición. En total hemos corrido 60 épocas a las capas nuevas, y 90 a fine-tuning, en 13 horas de cómputo con el equipo de GPU.
 
 #### Uso de CNNs con Machine Learning
 
-Features Maps - Con VGG16, red entrenada y fine-tuning, Red completa y Última capa
-En [8], [9] y [14]
+En [8] y [15] se extraen características de modelos de CNNs, en [8], al igual que en [7], lo hacen para volver a entrenar con otra CNN, pero como nosotros ya habíamos empezado con CNNs, decidimos extraer características para utilizarlas con modelos de *Machine Learning* (ML) como el todoterreno *Random Forest* (RF) y el típico aplicado a imágenes: *SVM* (Support Vector Machine). En [15] se extraen características de una CNN, y la pasan a algoritmos de ML, para ello se valen del módulo *scikit-learn* de Python [9], el cual provee varios algoritmos de ML, es como el *Keras* de Deep Learning.
+
+En base a la literatura [15] [9], preparamos ejecuciones con *features maps* del modelo VGG16, con la red pre-entrenada y con *fine-tuning*, respectivamente con la red completa y tomando la última capa convolucional.
+
+```python
+model = VGG16(weights='imagenet', include_top=False, input_shape=(3, imgSize, imgSize))
+```
+
+y
+
+```python
+model = Model(input=baseModel.input, outputs=baseModel.get_layer("block5_pool").output)
+```
+
+Las ejecuciones se hicieron con un conjunto de imágenes (incluyendo las extras) sin y con data augmentation (alrededor de 96000 imágenes), manteniendo el ratio en un tamaño de 64\*64 px, para los algoritmos RF y SVM de ML. Con el primero no se lograron resultados demasiado buenos, antes de lanzarlo, probamos con 100, 1000 y 2000 arboles con el conjunto sin data augmentation, resultando mejor ésta, que con data augmentation y 2000 arboles, creemos que esto se debe al overfitting al haber tantas imágenes.
+
+```python
+rfClf = RandomForestClassifier(n_estimators=2000, oob_score=True, n_jobs=-1, random_state=RDM, verbose=20,
+                                   criterion='gini')
+```
+
+Cabe destacar, que estas ejecuciones fueron ya fuera de fecha a la primera etapa de Kaggle, por lo que para cotejar el *logloss*, utilizamos un script provisto por una pareja de compañeros [17] (antes tomamos un envío previo a Kaggle, asegurándonos que de él mismo logloss que de Kaggle), logrando nuestro mejor resultado con 0.833 con SVM sin data augmentation, con los misma entrada que RF. Cabe agregar, que estos modelos los corrimos sobre *Colfax* para aprovechar los 256 cores (que si son aprovechados por *scikit-learn*), de igual manera llevaban unos tiempos de ejecución considerables, especialmente con el conjunto con data augmentation, con RF, pudimos ejecutarlo (7 horas como máximo), pero ya con SVM, los tiempos se dispararon (24 hs), por lo que el servidor de Clúster nos cortaba la ejecución.
+
+```python
+svcClf = SVC(kernel="rbf", verbose=True, decision_function_shape='ovo', probability=True, cache_size=5500)
+```
 
 #### OVA
 Adicionalmente a los modelos mencionados previamente decidimos probar alguna de las técnicas de división de un problema de clasificación multiclase en un problema binario. Una de estas técnicas es One-vs-One (OVO) que se basa en generar 1 clasificador por cada pareja de clases, en el caso de nuestro problema se generarían tres clasificadores, uno para distinguir entre el tipo 1 y el 2, otro para el 1 y el 3 y otro para el 2 y el 3. Posteriormente se combinarían las predicciones de cada uno de los clasificadores individuales.
@@ -453,6 +477,12 @@ Posición al cierre de la primera etapa: 160
 <p id="16">
 
 [16]: OpenCV (n.d.). Documentation. Recuperado en Junio de 2017, a partir de <http://docs.opencv.org/2.4.13.2/>
+
+</p>
+
+<p id="17">
+
+[17]: G. Rivas, A. Casado (2017). Intel-CervicalCancer-KaggleCompetition. Recuperado en Junio de 2017, a partir de <https://github.com/Griger/Intel-CervicalCancer-KaggleCompetition>
 
 </p>
 
