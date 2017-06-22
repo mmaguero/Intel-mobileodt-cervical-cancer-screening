@@ -292,38 +292,23 @@ Finalmente sólo hemos hecho ejecuciones con Inception V3, porque VGG16, al ser 
 
 En [8] explican que para realizar el fine-tuning, en nuestro caso, es favorable primero entrenar el clasificador de nivel superior, y sólo entonces comenzar a ajustar los pesos convolucionales a su lado. Por ello, elegimos ajustar sólo el último bloque convolucional en lugar de toda la red para evitar overfitting, ya que toda la red tendría una gran capacidad entrópica y, por lo tanto, una fuerte tendencia a overfit. Las características aprendidas por los bloques convolucionales de bajo nivel son más generales, menos abstractas que las encontradas más arriba, por lo que es razonable mantener los primeros bloques fijos (características más generales) y ajustar sólo la última (más características especializadas). El fine-tuning debe hacerse con una velocidad de aprendizaje muy lenta, típicamente con el optimizador de SGD en lugar de RMSProp por ejemplo, para asegurarse de que la magnitud de las actualizaciones se mantiene muy pequeña, para no arruinar las funciones previamente aprendidas.
 
-
 <img src="https://blog.keras.io/img/imgclf/vgg16_modified.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 300px; height: auto; display: block; margin: auto;"/>
 
 Partiendo del script [5], [6], [7] y [8] utilizado para lanzar ejecuciones con una red pre-entrenada, logramos adaptarlo para fine-tuning. Decidimos realizar las pruebas sobre VGG16 por ser más ligero, debido a nuestras capacidades de cómputo, con pesos de Imagenet e imágenes de 64\*64 px, con data augmentation, respetando el *aspect ratio*. Para fine-tuning, tal como lo hicimos con la red pre-entrenada, poníamos las capas de VGG16 o Inception V3 a no entrenables, y le agregabámos la salida adaptada a nuestro problema; no obstante, a diferencia de una red pre-entrenada, es necesario realizar un entrenamiento con las capas de abajo, para VGG16 tomamos las últimas 15. Lastimosamente, aunque el resultado fue bueno, no fue el esperado, puesto que quedo por debajo de nuestro modelo con from scratch por unas décimas, ya que esperabámos sea el modelo que nos catapulte a un mejor resultado en la competición. En total hemos corrido 60 épocas a las capas nuevas, y 90 a fine-tuning, en 13 horas de cómputo con el equipo de GPU.
 
 #### Uso de CNNs con Machine Learning
 
+Features Maps - Con VGG16, red entrenada y fine-tuning, Red completa y Última capa
 En [8], [9] y [14]
-
 
 #### OVA
 Adicionalmente a los modelos mencionados previamente decidimos probar alguna de las técnicas de división de un problema de clasificación multiclase en un problema binario. Una de estas técnicas es One-vs-One (OVO) que se basa en generar 1 clasificador por cada pareja de clases, en el caso de nuestro problema se generarían tres clasificadores, uno para distinguir entre el tipo 1 y el 2, otro para el 1 y el 3 y otro para el 2 y el 3. Posteriormente se combinarían las predicciones de cada uno de los clasificadores individuales.
 
-Otra técnica es One-vs-All (OVA) que crea un clasificador individual por cada clase independiente del problema, cada uno de estos clasificadores se entrena para distinguir entre su clase y todas las demás (sin distinguir entre ellas) combinando posteriormente los resultados de todos los clasificadores. 
+Otra técnica es One-vs-All (OVA) que crea un clasificador individual por cada clase independiente del problema, cada uno de estos clasificadores se entrena para distinguir entre su clase y todas las demás (sin distinguir entre ellas) combinando posteriormente los resultados de todos los clasificadores.
 
 Nos hemos decantado por probar esta última alternativa, ya que nos parecia más simple de llevar a cabo por no tener muy claro como combinar los resultados en el caso de OVO. Por ello partiendo del modelo básico de learning from scratch (ya que sus tiempos eran aceptables) se dividío el dataset en 3 cambiando las etiquetas para que fueran tipo n y el resto otros pasando estos 3 datasets a 3 copias del mismo modelo y entrenándolos con las imágenes en 64x64 con tamaño de batch 32 y 20% de datos para validación. Para combinar los resultados simplemente extraemos de cada clasificador el valor de la predicción de la clase para la que está entrenado, obviamente estos resultados no suman 1, pero según se menciona en las normas de kaggle esto no es necesario. El modelo obtuvo un total de 0.9905 en Kaggle, un porcentaje no muy bueno, probablemente debido a la naturaleza desbalanceada del dataset, en especial si se tiene en cuenta que para pasar el dataset a estos modelos unimos dos clases por lo que queda claramente desbalanceado y aunque los modelos individuales de cada clase no obtienen malos resultados, esto se debe a que mayormente predicen la clase "Otros", no la clase para la que han sido creados. Este modelo se podria mejorar utilizando las técnicas que hemos visto en clase para tratar problemas no balanceados como puede ser un _undersampling_ u _oversampling_.
 
-
-#### Feature maps
-Con VGG16, red entrenada y fine-tuning, Red completa y Última capa
-
 ### Comparativa de soluciones
-
-### Consideraciones
-
-Capacidad de cómputo
-Necesidad de clústeres
-Necesidad de GPUs de última generación
-Trabajar en CPU es un martirio
-EL resultado es directamente proporcional a la capacidad de cómputo
-Desigualdad de condiciones
-Tiempos de ejecución
 
 ## 4. Conclusiones y trabajos futuros
 
@@ -337,6 +322,16 @@ Se podría aplicar técnicas como *features extraction* sobre las imágenes, aun
 Utilizar ensambles sobre CNN o ML
 
 Aplicar OVO además de OVA, de una manera manual, puesto que existen módulos como scikit-learn de Python, con modelos como SVM que permite aplicar OVO sobre un conjunto de datos.
+
+### Conclusiones
+
+Capacidad de cómputo
+Necesidad de clústeres
+Necesidad de GPUs de última generación
+Trabajar en CPU es un martirio
+EL resultado es directamente proporcional a la capacidad de cómputo
+Desigualdad de condiciones
+Tiempos de ejecución
 
 <!-- Salto de página -->
 <div style="page-break-before: always;"></div>
@@ -448,7 +443,6 @@ Posición al cierre de la primera etapa: 160
 </p>
 
 **Añadir enlaces de opencv y EBImage**
-
 
 <!-- Salto de página -->
 <div style="page-break-before: always;"></div>
