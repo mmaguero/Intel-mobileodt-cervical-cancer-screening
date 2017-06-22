@@ -196,21 +196,21 @@ Como se ven en lás imágenes, el conjunto de datos no es balanceado, tiene una 
 Teniendo en cuenta que nos encontramos ante un problema de reconocimiento de imagenes las técnicas típicas que hemos aprendido de preprocesamiento como eliminación de outlayers, imputación de valores perdidos,... no son aplicables. Por ello hemos empleado algunas técnicas de preprocesamiento de imagenes.
 
 ### 2.1. Redimensionado
-Como se ha comentado ya las imagenes originales tienen una resolución muy elevada, cosa que las hace inmanegables en la práctica teniendo en cuenta nuestra capacidad computacional (un ordenador sin GPU y otro con una GPU de hace 4 años). Inicialmente partimos de unas imágenes redimensionadas por el profesor Juan Gómez en tamaño 256 x 256 px cambiando las proporciones originales de las imagenes (que son distintas entre sí a su vez). Con el objetivo de lograr que ocuparan menos procedimos a redimensionar nosotros mismos las imagenes guardandolas en formato `.jpg` en lugar del `.png` en el que se encontraban las imágenes de Juan Gómez, ya que este formato aplica una compresión más fuerte a las imagenes aunque se produzca una pérdida de calidad de las mismas. Para llevar a cabo este redimensionado he utilizado el paquete de R [**EBImage**](https://www.bioconductor.org/packages/release/bioc/html/EBImage.html) como se recomendó en las clases de prácticas. Tras un elevado tiempo de computo se generaron 3 carpetas con las imágenes de train, test y train + adicionales respectivamente. Aun estas imágenes resultaban demasiado grandes para nuestros dispositivos, tras leer las imagenes en arrays de datos guardabamos estos arrays en disco en un único fichero para facilitar la lectura posterior, ocupando un total de 7 GB entre los archivos con las imagenes de test y las de train + adicionales. Por lo tanto estas imagenes saturaban nuestra memoria RAM y nos vimos obligados a redimensionarlas a un tamaño de 64 x 64 px.
+Como se ha comentado ya las imagenes originales tienen una resolución muy elevada, cosa que las hace inmanegables en la práctica teniendo en cuenta nuestra capacidad computacional (un ordenador sin GPU y otro con una GPU de hace 4 años). Inicialmente partimos de unas imágenes redimensionadas por el profesor Juan Gómez en tamaño 256 \* 256 px cambiando las proporciones originales de las imagenes (que son distintas entre sí a su vez). Con el objetivo de lograr que ocuparan menos procedimos a redimensionar nosotros mismos las imagenes guardandolas en formato `.jpg` en lugar del `.png` en el que se encontraban las imágenes de Juan Gómez, ya que este formato aplica una compresión más fuerte a las imagenes aunque se produzca una pérdida de calidad de las mismas. Para llevar a cabo este redimensionado he utilizado el paquete de R [**EBImage**](https://www.bioconductor.org/packages/release/bioc/html/EBImage.html) como se recomendó en las clases de prácticas. Tras un elevado tiempo de computo se generaron 3 carpetas con las imágenes de train, test y train + adicionales respectivamente. Aun estas imágenes resultaban demasiado grandes para nuestros dispositivos, tras leer las imagenes en arrays de datos guardabamos estos arrays en disco en un único fichero para facilitar la lectura posterior, ocupando un total de 7 GB entre los archivos con las imagenes de test y las de train + adicionales. Por lo tanto estas imagenes saturaban nuestra memoria RAM y nos vimos obligados a redimensionarlas a un tamaño de 64 \* 64 px.
 
-Con estas imagenes ya pudimos empezar a trabajar en modelos básicos, pero decidimos intentar mejorar la redimensión, para redimensionar las imagenes a 64x64 se utilizo la conocida librería [**OpenCV**](http://opencv.org/) por ello estuvimos consultando la documentación de su método `resize()` donde parece intesante comprobar los métodos de interpolación utilizados para la redimensión, en la siguiente imagen se puede apreciar una imagen del dataset de train a la izquierda y sus redimensiones en 256x256 utilizando todas las interpolaciones disponibles a la derecha:
+Con estas imagenes ya pudimos empezar a trabajar en modelos básicos, pero decidimos intentar mejorar la redimensión, para redimensionar las imagenes a 64\*64 se utilizo la conocida librería [**OpenCV**](http://opencv.org/) por ello estuvimos consultando la documentación de su método `resize()` donde parece intesante comprobar los métodos de interpolación utilizados para la redimensión, en la siguiente imagen se puede apreciar una imagen del dataset de train a la izquierda y sus redimensiones en 256\*256 utilizando todas las interpolaciones disponibles a la derecha:
 
 ![distintas interpolaciones](doc/imgs/ResizeInterpolations.PNG)
 
 Siguiendo las recomendaciones de la documentación para hacer imágenes más pequeñas se recomienda la interpolación CV_INTER_AREA por lo que es la que he aplicado, teniendo en cuenta que siempre voy a redimensionar imágenes para hacerlas pequeñas, no más grandes.
 
-Otra cosa que se nos ocurrió para poder mejorar la calidad de los datos era hacer una redimensión que respete las proporciones originales de las imágenes, ya que estas son diferentes (algunas más anchas que altas y viceversa) para ello llevamos a cabo una redimensión alternativa que respetaba las proporciones a costa de recortar algunos trozos periféricos de las imágenes. Esto podría parecer perjudicial, pero la gran mayoria de las imagenes la región de interes se encuentra centrada, bien en un circulo como se aprecia en la imagen previa o bien con su fondo original, pero en cualquiera de los casos la zona uterina se encuentra en el centro. En la siguiente imagen podemos comparar los resultados viendo la imagen original a la izquierda y los dos tipos de redmiensiones en 256x256.
+Otra cosa que se nos ocurrió para poder mejorar la calidad de los datos era hacer una redimensión que respete las proporciones originales de las imágenes, ya que estas son diferentes (algunas más anchas que altas y viceversa) para ello llevamos a cabo una redimensión alternativa que respetaba las proporciones a costa de recortar algunos trozos periféricos de las imágenes. Esto podría parecer perjudicial, pero la gran mayoria de las imagenes la región de interes se encuentra centrada, bien en un circulo como se aprecia en la imagen previa o bien con su fondo original, pero en cualquiera de los casos la zona uterina se encuentra en el centro. En la siguiente imagen podemos comparar los resultados viendo la imagen original a la izquierda y los dos tipos de redmiensiones en 256\*256.
 
 ![Redimensión con cambio de proporciones](doc/imgs/ResizeAspectRatio.PNG)
 
 A pesar de esto no hemos podido encontrar resultados significativos al uso del dataset redimensionado directamente o respetando las proporciones originales.
 
-Adionalmente hemos creado diversas redimensiones para distintos modelos que no admitian el tamaño 64x64 y para poder probar con tamaños superiores, pero con un coste computacional demasiado elevado.
+Adionalmente hemos creado diversas redimensiones para distintos modelos que no admitian el tamaño 64\*64 y para poder probar con tamaños superiores, pero con un coste computacional demasiado elevado.
 
 ### 2.2. Transformaciones
 Para facilitar la predicción a los modelos con este dataset hemos visto en múltiples ejemplos y familias de modelos distintos que suele ser recomendable normalizar los datos antes de pasarlos al modelo, es decir cambiar el valor de los pixeles de cada uno de los canales del rango 0-255 al rango 0-1, para ello dividimos todos los valores de los pixeles entre 255 tras redimensionar.
@@ -218,7 +218,7 @@ Para facilitar la predicción a los modelos con este dataset hemos visto en múl
 ### 2.3. Aumento de datos
 Partiendo de [3] hemos intentado generar más imagenes a partir las existentes utilizando un método para extraer el area de interes o ROI en inglés, este método simplemente normaliza las imágenes pasandolas a blanco y negro y hace que aquellos pixeles cuyo valor sea menor 0,7 (no sean demasiado claros) se conserven en la imagen generada y aquellos muy claros se pongan a negro, este método es demasiado aleatorio para generar imagenes nuevas, ya que dependiendo de las características de cada imagen algunas si que funcionan bíen, pero aquellas que tienen más luz pierden demasiada información.
 
-En la siguiente imagen podemos apreciar la imagen original usada previamente para comparar con su homologa tras pasar por el método de extracción del ROI y redimensión a 256x256
+En la siguiente imagen podemos apreciar la imagen original usada previamente para comparar con su homologa tras pasar por el método de extracción del ROI y redimensión a 256\*256
 ![Imagen con su ROI](doc/imgs/ROI.PNG)
 
 Como se comentará en más detalle en el siguiente apartado nuestra principal herramienta ha sido la librería de Deep Learning Keras, esta libraría contiene muchas utilidades adcionales para problemas de reconocimiento de imágenes, entre ellas métodos para realizar aumento de datos realizando transformaciones básicas como zooms, desplazamientos verticales u horizontales... en concreto hablo de `ImageDataGenerator`. Siguiendo los consejos de [8] creo una instancia de dicha clase con los siguientes parámetros:
@@ -264,7 +264,7 @@ Incluso hemos intentando contratar instancias de [Amazon Web Services (AWS)](htt
 #### Learning from scratch
 Partiendo del ejemplo disponible en [3] creamos una red neuronal convolutiva con las siguientes capas:
 ![Arquitectura de la red inicial](doc/imgs/model_21-06-2017_17-34.png)
-Con este modelo lanzamos una primera ejecución con 320 épocas alcanzando un total de 0.88509 aplicando el aumento de datos básico con tamaño de batch de 32 para la generación de imagenes y algo de zoom y rotación realizado en [3] y utilizando las imagenes adicionales de training normalizadas en tamaño 64x64 sin respetar las proporciones originales.
+Con este modelo lanzamos una primera ejecución con 320 épocas alcanzando un total de 0.88509 aplicando el aumento de datos básico con tamaño de batch de 32 para la generación de imagenes y algo de zoom y rotación realizado en [3] y utilizando las imagenes adicionales de training normalizadas en tamaño 64\*64 sin respetar las proporciones originales.
 
 Animados con este resultado y su tiempo de ejecución que no estaba nada mal (unos 10 s por epoca) decidimos probar a lanzar el mismo modelo utilizando clustar Colfax mencionado previamente, pero esta vez sin utilizar las imagenes adicionales y manteniendo el resto de parámetros iguales, en este caso lanzamos el modelo durante 600 epocas guardando el mejor modelo producido utilizando como criterio el logloss sobre el conjunto de validación. Este conjunto de validación es un subconjunto del de entrenamiento que no se le ha enseñado al modelo y se utiliza para hacerse una idea de como generaliza el modelo, es decir de lo bueno que será con el conjunto de test. El mejor modelo obtenido fue nuestra segunda subida en Kaggle puntuando un total de 1.30324, muy lejos de nuestro primer modelo, lo cual denota la importancia de tener más datos en este problema, ya que aún con las imagenes adicionales no son suficientes para entrenar modelos de Deep Learning. Esta ejecución tambien nos permitió percatarnos de los problemas con Colfax ya que los tiempos eran desorbitados en comparación con nuestros equipos, debido a que no paralelizaba con TensorFlow (tardó más de 24 h en finalizar la ejecución).
 
@@ -290,7 +290,7 @@ Finalmente sólo hemos hecho ejecuciones con Inception V3, porque VGG16, al ser 
 
 #### Fine-tuning
 
-En [8] explican que para realizar el fine-tuning, en nuestro caso, es favorable primero entrenar el clasificador de nivel superior, y sólo entonces comenzar a ajustar los pesos convolucionales a su lado. Por ello, elegimos ajustar sólo el último bloque convolucional en lugar de toda la red para evitar overfitting, ya que toda la red tendría una gran capacidad entrópica y, por lo tanto, una fuerte tendencia a overfit. Las características aprendidas por los bloques convolucionales de bajo nivel son más generales, menos abstractas que las encontradas más arriba, por lo que es razonable mantener los primeros bloques fijos (características más generales) y ajustar sólo la última (más características especializadas). El fine-tuning debe hacerse con una velocidad de aprendizaje muy lenta, típicamente con el optimizador de SGD en lugar de RMSProp por ejemplo, para asegurarse de que la magnitud de las actualizaciones se mantiene muy pequeña, para no arruinar las funciones previamente aprendidas.
+En [8] explican que para realizar el fine-tuning, en nuestro caso, es favorable primero entrenar el clasificador de nivel superior, y sólo entonces comenzar a ajustar los pesos convolucionales a su lado. Por ello, elegimos ajustar sólo el último bloque convolucional en lugar de toda la red para evitar overfitting, ya que toda la red tendría una gran capacidad entrópica y, por lo tanto, una fuerte tendencia a sobreaprendizaje. Las características aprendidas por los bloques convolucionales de bajo nivel son más generales, menos abstractas que las encontradas más arriba, por lo que es razonable mantener los primeros bloques fijos (características más generales) y ajustar sólo la última (más características especializadas). El fine-tuning debe hacerse con una velocidad de aprendizaje muy lenta, típicamente con el optimizador de SGD en lugar de RMSProp por ejemplo, para asegurarse de que la magnitud de las actualizaciones se mantiene muy pequeña, para no arruinar las funciones previamente aprendidas.
 
 <img src="https://blog.keras.io/img/imgclf/vgg16_modified.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 300px; height: auto; display: block; margin: auto;"/>
 
@@ -306,7 +306,7 @@ Adicionalmente a los modelos mencionados previamente decidimos probar alguna de 
 
 Otra técnica es One-vs-All (OVA) que crea un clasificador individual por cada clase independiente del problema, cada uno de estos clasificadores se entrena para distinguir entre su clase y todas las demás (sin distinguir entre ellas) combinando posteriormente los resultados de todos los clasificadores.
 
-Nos hemos decantado por probar esta última alternativa, ya que nos parecia más simple de llevar a cabo por no tener muy claro como combinar los resultados en el caso de OVO. Por ello partiendo del modelo básico de learning from scratch (ya que sus tiempos eran aceptables) se dividío el dataset en 3 cambiando las etiquetas para que fueran tipo n y el resto otros pasando estos 3 datasets a 3 copias del mismo modelo y entrenándolos con las imágenes en 64x64 con tamaño de batch 32 y 20% de datos para validación. Para combinar los resultados simplemente extraemos de cada clasificador el valor de la predicción de la clase para la que está entrenado, obviamente estos resultados no suman 1, pero según se menciona en las normas de kaggle esto no es necesario. El modelo obtuvo un total de 0.9905 en Kaggle, un porcentaje no muy bueno, probablemente debido a la naturaleza desbalanceada del dataset, en especial si se tiene en cuenta que para pasar el dataset a estos modelos unimos dos clases por lo que queda claramente desbalanceado y aunque los modelos individuales de cada clase no obtienen malos resultados, esto se debe a que mayormente predicen la clase "Otros", no la clase para la que han sido creados. Este modelo se podria mejorar utilizando las técnicas que hemos visto en clase para tratar problemas no balanceados como puede ser un _undersampling_ u _oversampling_.
+Nos hemos decantado por probar esta última alternativa, ya que nos parecia más simple de llevar a cabo por no tener muy claro como combinar los resultados en el caso de OVO. Por ello partiendo del modelo básico de learning from scratch (ya que sus tiempos eran aceptables) se dividío el dataset en 3 cambiando las etiquetas para que fueran tipo n y el resto otros pasando estos 3 datasets a 3 copias del mismo modelo y entrenándolos con las imágenes en 64\*64 con tamaño de batch 32 y 20% de datos para validación. Para combinar los resultados simplemente extraemos de cada clasificador el valor de la predicción de la clase para la que está entrenado, obviamente estos resultados no suman 1, pero según se menciona en las normas de kaggle esto no es necesario. El modelo obtuvo un total de 0.9905 en Kaggle, un porcentaje no muy bueno, probablemente debido a la naturaleza desbalanceada del dataset, en especial si se tiene en cuenta que para pasar el dataset a estos modelos unimos dos clases por lo que queda claramente desbalanceado y aunque los modelos individuales de cada clase no obtienen malos resultados, esto se debe a que mayormente predicen la clase "Otros", no la clase para la que han sido creados. Este modelo se podria mejorar utilizando las técnicas que hemos visto en clase para tratar problemas no balanceados como puede ser un _undersampling_ u _oversampling_.
 
 ### Comparativa de soluciones
 
@@ -362,13 +362,13 @@ Posición al cierre de la primera etapa: 160
 
 <p id="1">
 
-[1]: Kaggle (n.d). Intel & MobileODT Cervical Cancer Screening. Recuperado en Junio de 2017, desde <https://www.kaggle.com/c/intel-mobileodt-cervical-cancer-screening>
+[1]: Kaggle (n.d). Intel & MobileODT Cervical Cancer Screening. Recuperado en Junio de 2017, a partir de <https://www.kaggle.com/c/intel-mobileodt-cervical-cancer-screening>
 
 </p>
 
 <p id="2">
 
-[2]: Xiu-Shen, W. (2015, octubre). Must Know Tips/Tricks in Deep Neural Networks (by <a href="http://lamda.nju.edu.cn/weixs/">Xiu-Shen Wei</a>). Recuperado en Junio de 2017, a partir de http://lamda.nju.edu.cn/weixs/project/CNNTricks/CNNTricks.html
+[2]: Xiu-Shen, W. (Octubre, 2015). Must Know Tips/Tricks in Deep Neural Networks (by <a href="http://lamda.nju.edu.cn/weixs/">Xiu-Shen Wei</a>). Recuperado en Junio de 2017, a partir de http://lamda.nju.edu.cn/weixs/project/CNNTricks/CNNTricks.html
 
 </p>
 
@@ -380,72 +380,82 @@ Posición al cierre de la primera etapa: 160
 
 <p id="4">
 
-[4]: J. Brownlee (9 de Agosto 2016). How to Grid Search Hyperparameters for Deep Learning Models in Python With Keras. Recuperado en Junio de 2017, desde <http://machinelearningmastery.com/grid-search-hyperparameters-deep-learning-models-python-keras/>
+[4]: J. Brownlee (9 de Agosto 2016). How to Grid Search Hyperparameters for Deep Learning Models in Python With Keras. Recuperado en Junio de 2017, a partir de <http://machinelearningmastery.com/grid-search-hyperparameters-deep-learning-models-python-keras/>
 
 </p>
 
 <p id="5">
 
-[5]: Keras (n.d). ImageNet: VGGNet, ResNet, Inception, and Xception with Keras. Recuperado en Junio de 2017, desde <https://keras.io/>
+[5]: Keras (n.d). ImageNet: VGGNet, ResNet, Inception, and Xception with Keras. Recuperado en Junio de 2017, a partir de <https://keras.io/>
 
 </p>
 
 <p id="6">
 
-[6]: A. Rosebrock (20 de marzo 2017). ImageNet: VGGNet, ResNet, Inception, and Xception with Keras. Recuperado en Junio de 2017, desde <http://www.pyimagesearch.com/2017/03/20/imagenet-vggnet-resnet-inception-xception-keras/>
+[6]: A. Rosebrock (20 de Marzo 2017). ImageNet: VGGNet, ResNet, Inception, and Xception with Keras. Recuperado en Junio de 2017, a partir de <http://www.pyimagesearch.com/2017/03/20/imagenet-vggnet-resnet-inception-xception-keras/>
 
 </p>
 
 <p id="7">
 
-[7]: D. Gupta (1 de junio 2017). Transfer learning & The art of using Pre-trained Models in Deep Learning. Recuperado en Junio de 2017, desde <https://www.analyticsvidhya.com/blog/2017/06/transfer-learning-the-art-of-fine-tuning-a-pre-trained-model/>
+[7]: D. Gupta (1 de junio 2017). Transfer learning & The art of using Pre-trained Models in Deep Learning. Recuperado en Junio de 2017, a partir de <https://www.analyticsvidhya.com/blog/2017/06/transfer-learning-the-art-of-fine-tuning-a-pre-trained-model/>
 
 </p>
 
 <p id="8">
 
-[8]: F. Chollet (5 de junio 2016). Building powerful image classification models using very little data. Recuperado en Junio de 2017, desde <https://blog.keras.io/building-powerful-image-classification-models-using-very-little-data.html>
+[8]: F. Chollet (5 de junio 2016). Building powerful image classification models using very little data. Recuperado en Junio de 2017, a partir de <https://blog.keras.io/building-powerful-image-classification-models-using-very-little-data.html>
 
 </p>
 
 <p id="9">
 
-[9]: scikit-learn (n.d). Scikit-learn, Machine Learning in Python. Recuperado en Junio de 2017, desde <http://scikit-learn.org/stable/index.html>
+[9]: scikit-learn (n.d). Scikit-learn, Machine Learning in Python. Recuperado en Junio de 2017, a partir de <http://scikit-learn.org/stable/index.html>
 
 </p>
 
 <p id="10">
 
-[10]: P. Schmidt (n.d). Cervix EDA & Model selection. Recuperado en Junio de 2017, desde <https://www.kaggle.com/philschmidt/cervix-eda-model-selection>
+[10]: P. Schmidt (n.d). Cervix EDA & Model selection. Recuperado en Junio de 2017, a partir de <https://www.kaggle.com/philschmidt/cervix-eda-model-selection>
 
 </p>
 
 <p id="11">
-[11]: Wikipedia (2017, mayo 12). Feature extraction. Recuperado a partir de <https://en.wikipedia.org/w/index.php?title=Feature_extraction&oldid=779974336>
+
+[11]: Wikipedia (12 de mayo 2017). Feature extraction. Recuperado a partir de <https://en.wikipedia.org/w/index.php?title=Feature_extraction&oldid=779974336>
 
 </p>
 
 <p id="12">
-[12]: A. Oleś et al (2017, abril 24). Introduction to EBImage. Recuperado a partir de <https://bioconductor.org/packages/release/bioc/vignettes/EBImage/inst/doc/EBImage-introduction.html>
+
+[12]: A. Oleś et al (24 de abril 2017). Introduction to EBImage. Recuperado en Junio de 2017, a partir de <https://bioconductor.org/packages/release/bioc/vignettes/EBImage/inst/doc/EBImage-introduction.html>
 
 </p>
 
 <p id="13">
-[13]: Karpathy, A. (n.d.). ConvNetJS Trainer Comparison on MNIST. Recuperado 21 de junio de 2017, a partir de <http://cs.stanford.edu/people/karpathy/convnetjs/demo/trainers.html>
+
+[13]: Karpathy, A. (n.d.). ConvNetJS Trainer Comparison on MNIST. Recuperado en Junio de 2017, a partir de <http://cs.stanford.edu/people/karpathy/convnetjs/demo/trainers.html>
+
 </p>
 
 <p id="14">
-[14]: Ruder, S. (2016, enero 19). An overview of gradient descent optimization algorithms. Recuperado 21 de junio de 2017, a partir de <http://sebastianruder.com/optimizing-gradient-descent/>
+
+[14]: Ruder, S. (19 de enero 2016). An overview of gradient descent optimization algorithms. Recuperado en Junio de 2017, a partir de <http://sebastianruder.com/optimizing-gradient-descent/>
+
 </p>
 
 <p id="15">
+
 [15]: Takuya. (n.d.). Using pre-trained network. Recuperado 21 de junio de 2017, a partir de <https://www.kaggle.com/katotakuya/using-pre-trained-network>
+
 </p>
 
-**Añadir enlaces de opencv y EBImage**
+<p id="16">
 
-<!-- Salto de página -->
-<div style="page-break-before: always;"></div>
+[16]: OpenCV (n.d.). Documentation. Recuperado en Junio de 2017, a partir de <http://docs.opencv.org/2.4.13.2/>
+
+</p>
+
 
 ## Anexos
 
