@@ -272,7 +272,7 @@ Tras perder una mañana intentando configurar Colfax para ejecutar modelos usand
 
 ![Gráfica de valor de loss con distintas optimizaciones contra el numero de instancias vistas](doc/imgs/adadelta.png)
 
-Cambiando simplemente esos dos parámetros y entrenando durante 500 épocas llegamos conseguir un modelo con una puntuación de 0.841, nuestra mejor subida a Kaggle a pesar de haber probado otros métodos más avanzados.
+Cambiando simplemente esos dos parámetros y entrenando durante 500 épocas llegamos conseguir un modelo con una puntuación de 0.841.
 
 Con el objetivo de sacarle el máximo partido a este modelo decidimos realizar una optimización de los hiperparámetros de la red neuronal siguiendo los consejos de [4] que basícamente entrena todos los modelos para todas las combinaciones de los siguientes parametros:
 - Optimizadores: 'adadelta', 'adamax', 'adam'
@@ -280,6 +280,7 @@ Con el objetivo de sacarle el máximo partido a este modelo decidimos realizar u
 - Numero de épocas: 30
 
 Obteniendo como mejor modelo aquel con parámetros adam y tamaño batch 32 obteniendo un 0,9198 sobre validación, usamos ese modelo como base y lo entrenamos durante más epocas pero los resultados no mejoraban por lo que no llegamos a realizar una subida con dicho modelo.
+
 
 
 #### Red pre-entrenada
@@ -293,6 +294,8 @@ Finalmente sólo hemos hecho ejecuciones con Inception V3, porque VGG16, al ser 
 En [8] explican que para realizar el fine-tuning, en nuestro caso, es favorable primero entrenar el clasificador de nivel superior, y sólo entonces comenzar a ajustar los pesos convolucionales a su lado. Por ello, elegimos ajustar sólo el último bloque convolucional en lugar de toda la red para evitar overfitting, ya que toda la red tendría una gran capacidad entrópica y, por lo tanto, una fuerte tendencia a sobreaprendizaje. Las características aprendidas por los bloques convolucionales de bajo nivel son más generales, menos abstractas que las encontradas más arriba, por lo que es razonable mantener los primeros bloques fijos (características más generales) y ajustar sólo la última (más características especializadas). El fine-tuning debe hacerse con una velocidad de aprendizaje muy lenta, típicamente con el optimizador de SGD en lugar de RMSProp por ejemplo, para asegurarse de que la magnitud de las actualizaciones se mantiene muy pequeña, para no arruinar las funciones previamente aprendidas.
 
 <img src="https://blog.keras.io/img/imgclf/vgg16_modified.png" alt="Fine-tuning con VGG16" style="width: 300px; height: auto; display: left; margin: auto;"/>
+
+**Mencionar cuales son nuestras capas añadidas**
 
 Partiendo del script [5], [6], [7] y [8] utilizado para lanzar ejecuciones con una red pre-entrenada, logramos adaptarlo para fine-tuning. Decidimos realizar las pruebas sobre VGG16 por ser más ligero, debido a nuestras capacidades de cómputo, con pesos de Imagenet e imágenes de 64\*64 px, con data augmentation, respetando el *aspect ratio*. Para fine-tuning, tal como lo hicimos con la red pre-entrenada, poníamos las capas de VGG16 o Inception V3 a no entrenables, y le agregabámos la salida adaptada a nuestro problema; no obstante, a diferencia de una red pre-entrenada, es necesario realizar un entrenamiento con las capas de abajo, para VGG16 tomamos las últimas 15. Lastimosamente, aunque el resultado fue bueno, no fue el esperado, puesto que quedo por debajo de nuestro modelo con *from scratch* por unas décimas, ya que esperabámos sea el modelo que nos catapulte a un mejor resultado en la competición. En total hemos corrido 60 épocas a las capas nuevas, y 90 a fine-tuning, en 13 horas de cómputo con el equipo de GPU.
 
@@ -330,9 +333,12 @@ Adicionalmente a los modelos mencionados previamente decidimos probar alguna de 
 
 Otra técnica es One-vs-All (OVA) que crea un clasificador individual por cada clase independiente del problema, cada uno de estos clasificadores se entrena para distinguir entre su clase y todas las demás (sin distinguir entre ellas) combinando posteriormente los resultados de todos los clasificadores.
 
-Nos hemos decantado por probar esta última alternativa, ya que nos parecia más simple de llevar a cabo por no tener muy claro como combinar los resultados en el caso de OVO. Por ello partiendo del modelo básico de learning from scratch (ya que sus tiempos eran aceptables) se dividío el dataset en 3 cambiando las etiquetas para que fueran tipo n y el resto otros pasando estos 3 datasets a 3 copias del mismo modelo y entrenándolos con las imágenes en 64\*64 con tamaño de batch 32 y 20% de datos para validación. Para combinar los resultados simplemente extraemos de cada clasificador el valor de la predicción de la clase para la que está entrenado, obviamente estos resultados no suman 1, pero según se menciona en las normas de kaggle esto no es necesario. El modelo obtuvo un total de 0.9905 en Kaggle, un porcentaje no muy bueno, probablemente debido a la naturaleza desbalanceada del dataset, en especial si se tiene en cuenta que para pasar el dataset a estos modelos unimos dos clases por lo que queda claramente desbalanceado y aunque los modelos individuales de cada clase no obtienen malos resultados, esto se debe a que mayormente predicen la clase "Otros", no la clase para la que han sido creados. Este modelo se podria mejorar utilizando las técnicas que hemos visto en clase para tratar problemas no balanceados como puede ser un _undersampling_ u _oversampling_.
+Nos hemos decantado por probar esta última alternativa, ya que nos parecia más simple de llevar a cabo por no tener muy claro como combinar los resultados en el caso de OVO. Por ello partiendo del modelo básico de learning from scratch (ya que sus tiempos eran aceptables) se dividío el dataset en 3 cambiando las etiquetas para que fueran tipo n y el resto otros pasando estos 3 datasets a 3 copias del mismo modelo y entrenándolos con las imágenes en 64\*64 con tamaño de batch 32 y 20% de datos para validación. Para combinar los resultados simplemente extraemos de cada clasificador el valor de la predicción de la clase para la que está entrenado, obviamente estos resultados no suman 1, pero según se menciona en las normas de kaggle esto no es necesario. El modelo obtuvo un total de 0.9905 en Kaggle con 480 épocas, un porcentaje no muy bueno, probablemente debido a la naturaleza desbalanceada del dataset, en especial si se tiene en cuenta que para pasar el dataset a estos modelos unimos dos clases por lo que queda claramente desbalanceado y aunque los modelos individuales de cada clase no obtienen malos resultados, esto se debe a que mayormente predicen la clase "Otros", no la clase para la que han sido creados. Este modelo se podria mejorar utilizando las técnicas que hemos visto en clase para tratar problemas no balanceados como puede ser un _undersampling_ u _oversampling_.
 
 ### Comparativa de soluciones
+Modelos simples pero bien adaptados parecen funcionar mejor, probablemente por nuestro desconocimiento a la hora de aplicar técnicas más avanzadas.
+
+Mencionar que hemos empleado un script donde se implementa la función Log Loss de Kaggle para poder seguir realizando pruebas una vez pasado el 14 de Junio. Dicho script ha sido desarrollado por nuestros compañeros Gustavo Rivas Gervilla y Alejandro Casado Quijada.
 
 ## 4. Conclusiones y trabajos futuros
 
@@ -349,13 +355,11 @@ Aplicar OVO además de OVA, de una manera manual, puesto que existen módulos co
 
 ### Conclusiones
 
-Capacidad de cómputo
-Necesidad de clústeres
-Necesidad de GPUs de última generación
-Trabajar en CPU es un martirio
-EL resultado es directamente proporcional a la capacidad de cómputo
-Desigualdad de condiciones
-Tiempos de ejecución
+Para finalizar este documento recogeremos en este apartado nuestras impresiones finales sobre este trabajo. La lucha contra el cancer es un tema interesante y de gran transcendencia en la actualidad, esto hace qu esta práctica resulte muy inspiradora al ver como se puede aplicar nuestros conocimientos en análisis de datos a problemas de primer orden. Nuestra experiencia previa con redes neuronales (en la asignatura de Inteligencia Computacional) se basó más en entender como funcionaban dichos modelos y muchos llegamos a implementar modelos simples sin ayuda de ninguna librería, por lo que uso de las herramientas descritas en esta memoria permite crear redes neuronales muy complejas sin demasiado esfuerzo lo que es una experiencia gratificante.
+
+Por otro lado el desarrollo de esta práctica ha estado plagado de problemas e inconvenientes, desde el comienzo con los eternos tiempos para descargar los 30 GB de imágenes, pasando por los múltiples problemas para instalar y utilizar las herramientas vistas en prácticas (MXNET e Intel Deep Learning SDK) que nos han obligado a prácticamente todos los compañeros a abandonarlas y buscar otras herramientas de las que apenas teníamos conocimientos. También cabe destacar la profunda desigualdad que ha existido entre los distintos equipos unicamente debido a componentes hardware, mientras unos equipos tardaban 13 horas en entrenar un modelo otros entrenaban 5 en ese tiempo, lo que hacia que pudieran probar más técnicas. Relacionado con estas diferencias de hardware este tipo de modelos de deep learning resultan prácticamente imposible de ejecutar en equipos que no dispongan de una GPU debido a los tiempos y al calentamiento de los equipos en la ejecución sobre CPU. Uno de los principales problemas con los tiempos de computo es que prácticamente inutilizaban los ordenadores mientras se entrenaban modelos por estár la CPU y la memoria casi al límite de sus posibilidades durante horas.
+
+Una posible solución a estos problemas sería haber dispuesto de un servidor o cluster sobre el que realizar estas prácticas, igualando así las condiciones entre todos los equipos. Otra alternativa sería haber utilizado un problema multiclase más simple que permitiera centrarse en experimentar con más técnicas.
 
 <!-- Salto de página -->
 <div style="page-break-before: always;"></div>
@@ -363,18 +367,27 @@ Tiempos de ejecución
 ## 5. Listado de soluciones
 
 Las siguientes abreviaturas representan el Preprocesamiento o el Algoritmo/Software utilizado en las soluciones (y utilizadas en el tabla de abajo):
-- ...: ...
--
+- LfS1: Learning from scratch con CNN básica, 320 épocas sin validación, optimización Adamax.
+- LfS2: Learning from scratch con CNN básica, 600 épocas con 20% validación, optimización Adamax.
+- LfS3: Learning from scratch con CNN básica, 500 épocas con 10% validación, optimización Adadelta.
+- OVA: OVA con modelos LfS3, 20% validación, 480 épocas.
+- R64DAP: Redimensionado de imagenes sin adicionales a 64*64 sin respetar las proporciones originales, normalización, data augmentation con un poco de rotación y zoom solo.
+- RE64DAM: Redimensionado de imagenes junto con las adicionales a 64*64 sin respetar las proporciones originales, normalización, data augmentation con rotacion, zoom, translación y flips.
+- RE64DAP: Redimensionado de imagenes junto con las adicionales a 64*64 sin respetar las proporciones originales, normalización, data augmentation con un poco de rotación y zoom solo.
+- RE64ARDAM: Redimensionado de imagenes junto con las adicionales a 64*64 respetando las proporciones originales, normalización, data augmentation con rotacion, zoom, translación y flips.
+- VGG16: Fine-tuning con VGG16 añadiendo una capa Flaten y dos Dense (relu y softmax) a la salida. Entrenando 60 épocas a las capas nuevas, y 90 las nuevas junto con el último bloque convolutivo. 25 % de validación
 
-La siguiente tabla recoge las distintas soluciones presentadas en Kaggle.
+La siguiente tabla recoge las distintas soluciones presentadas en Kaggle, las filas que se encuentran en cursiva corresponden a pruebas realizadas pasado el 14 de Junio (no subidas a Kaggle por tanto).
 
-| Nº Solución | Preprocesamiento | Algoritmo/Software | % de acierto entrenamiento | % de acierto test (Kaggle) | Posición Ranking           |
-|-------------|-------------------|--------------------|----------------------------|----------------------------|----------------------------|
-| 1           |                   |                    | 0.8554                     | 0.88509                    | 292                        |
-| 2           |                   |                    | 0.7675                     | 1.30324                    | 300                        |
-| 3           |                   |                    | **0.**                     | **0.841**                  | **stg 1: 242 / stg 2: 75** |
-| 4           |                   |                    | 0.                         | 0.845                      | 261                        |
-| 5           |                   |                    | 0.                         | 0.98                       | 261
+| Nº Solución | Preprocesamiento | Algoritmo/Software | % de acierto entrenamiento | % de acierto test (Kaggle) | Posición Ranking |
+|-------------|------------------|--------------------|----------------------------|----------------------------|------------------|
+| 1           | RE64DAP          | LfS1               | 0.8554                     | 0.88509                    | 292              |
+| 2           | R64DAP           | LfS2               | 0.7675                     | 1.30324                    | 300              |
+| **3**       | **RE64DAP**      | **LfS3**           | **0.853**                  | **0.841**                  | **242**          |
+| 4           | RE64ARDAM        | VGG16              | 0.731                      | 0.845                      | 261              |
+| 5           | RE64DAP          | OVA                | 0.5338                     | 0.98                       | 261              |
+|             |                  |                    |                            |                            |                  |
+|             |                  |                    |                            |                            |                  |
 
 
 Posición al cierre de la primera etapa: 160
