@@ -42,21 +42,26 @@ Ejemplo de Indice final eliminando el enlace y añadiendo el número de página
 <!-- toc -->
 
 - [1. Exploración de datos](#1-exploracion-de-datos)
-  * [1.1. Las mujeres y los niños primero](#11-las-mujeres-y-los-ninos-primero)
-  * [1.2. Clase social](#12-clase-social)
-  * [1.3. Uniendo ambos criterios](#13-uniendo-ambos-criterios)
-  * [1.4. Otras variables](#14-otras-variables)
 - [2. Preprocesamiento de datos](#2-preprocesamiento-de-datos)
-  * [2.1. Integración y detección de conflictos e inconsistencias en los datos](#21-integracion-y-deteccion-de-conflictos-e-inconsistencias-en-los-datos)
+  * [2.1. Redimensionado](#21-redimensionado)
   * [2.2. Transformaciones](#22-transformaciones)
-  * [2.3. Reducción de datos](#23-reduccion-de-datos)
+  * [2.3. Aumento de datos](#23-aumento-de-datos)
 - [3. Técnicas de clasificación y discusión de resultados](#3-tecnicas-de-clasificacion-y-discusion-de-resultados)
-  * [3.1. Árbol de decisión simple](#31-arbol-de-decision-simple)
-  * [3.2. Random Forest](#32-random-forest)
-  * [3.3. CForest](#33-cforest)
+  * [3.1. Herramientas](#31-herramientas)
+    + [3.1.1. Otras herramientas](#311-otras-herramientas)
+  * [3.2. Técnicas](#32-tecnicas)
+    + [3.2.1. Learning from scratch](#321-learning-from-scratch)
+    + [3.2.2. Red pre-entrenada](#322-red-pre-entrenada)
+    + [3.2.3. Fine-tuning](#323-fine-tuning)
+    + [3.2.4. Uso de CNNs con Machine Learning](#324-uso-de-cnns-con-machine-learning)
+    + [3.2.5. OVA](#325-ova)
+  * [3.3. Comparativa de soluciones](#33-comparativa-de-soluciones)
 - [4. Conclusiones y trabajos futuros](#4-conclusiones-y-trabajos-futuros)
+  * [4.1. Trabajo futuro](#41-trabajo-futuro)
+  * [4.2. Conclusiones](#42-conclusiones)
 - [5. Listado de soluciones](#5-listado-de-soluciones)
-- [Bibliografía](#bibliografia)
+- [6. Bibliografía](#6-bibliografia)
+- [Anexos](#anexos)
 
 <!-- tocstop -->
 
@@ -241,7 +246,7 @@ Donde se establecen las transformaciones a llevar a cabo, se puede ver que se ap
 
 Discusión de las técnicas y herramientas de clasificación empleadas, justificación de su elección. Descripción y discusión de las soluciones obtenidas, incidiendo en la interpretación de los resultados. Análisis comparativo de las diferentes técnicas y/o parámetros de configuración en diferentes aproximaciones.
 
-### Herramientas
+### 3.1. Herramientas
 
 Hemos utilizado [Keras](https://keras.io/), una librería de Python para Deep Learning, con [Tensorflow](https://www.tensorflow.org/) como backend, una librería de Python para computación numérica, en un equipo con una GPU (Unidad de Procesamiento Gráfico) antigua (pero para suerte nuestra, aún podía ejecutar esta herramienta), y con otro equipo (con un par de años) con CPU (Unidad de Procesamiento Central) solamente. Los tiempo con CPU estaban sobre el doble (o un poco más) que con GPU, lo que delata que no se trata de una GPU de última generación.
 
@@ -249,7 +254,7 @@ Además nos hemos valido de [Scikit-learn](http://scikit-learn.org), una librer�
 
 La decisión de utilizar de estas herramientas es porqué son las más populares en el ámbito de la competencia, en la misma página de Kaggle hay mucha documentación proporcionada por la comunidad: como discusiones, tutoriales o kernels, etc. Además hoy por hoy, Tensorflow se ha ganado el mercado de Deep Learning, que con Keras se logra abstraerla bastante, pudiendo aprovecharla en tan sólo pocas líneas. Intentamos utilizar además las herramientas sugeridas en la asignatura sin éxito, puede consultarse más abajo el Apartado *Otras herramientas* para más detalles.
 
-#### Otras herramientas
+#### 3.1.1. Otras herramientas
 
 Primeramente hemos intentado utilizar las herramientas propuestas en clase, [Intel Deep Learning SDK](https://software.intel.com/en-us/deep-learning-training-tool) y [MXNet](http://mxnet.io/api/r/index.html) con R. La primera presentó muchos problemas a la hora de la instalación, que una vez subsanados, al ser una herramienta en versión beta, no iba muy bien de rendimiento en local sobre Linux: tiempos de cómputo altos dejando inutilizado el ordenador para otras tareas, incluso a veces, la herramienta daba fallos posteriores a la instalación y uso, que la dejaba no funcional. Pero creemos que en un futuro sería una herramienta muy completa, puesto que se pueden utilizar varias técnicas a tan sólo un clic. Tambíen pensamos que esta herramienta, está más orientada a ser desplegada en potentes servidores o *clusters* a los que accedan los usuarios de la herramienta mediante la interfaz web, que en un portátil de prestaciones normales y unos cuantos años de antigüedad como de los que disponemos actualmente. Sobre MXNET, como veníamos familiarizados con ella (al utilizarla en prácticas), quisimos montarla sobre GPU (dedicando 3 días para su compilación en un S.O. Windows), pero el resultado no fue bueno, con o sin GPU no se completaban las tareas, ya que R Studio, no podía funcionar del todo bien con MXNet.
 
@@ -257,9 +262,9 @@ Además de las anteriores, intentamos aprovechar el [clúster Colfax](https://co
 
 Incluso hemos intentando contratar instancias de [Amazon Web Services (AWS)](https://aws.amazon.com/es/ec2/Elastic-GPUs/) con GPU con nuestras cuentas de estudiante pero no era posible utilizar éstas debido a las limitaciones de dichas cuentas, encontrándonos con instancias virtuales con capacidades iguales o peores que nuestros ordenadores y sin la posibilidad de utilizar GPU.
 
-### Técnicas
+### 3.2. Técnicas
 
-#### Learning from scratch
+#### 3.2.1. Learning from scratch
 Partiendo del ejemplo disponible en [3] creamos una red neuronal convolutiva con las siguientes capas:
 ![Arquitectura de la red inicial](doc/imgs/model_21-06-2017_17-34.png)
 Con este modelo lanzamos una primera ejecución con 320 épocas alcanzando un total de 0.88509 aplicando el aumento de datos básico con tamaño de batch de 32 para la generación de imágenes y algo de zoom y rotación realizado en [3] y utilizando las imágenes adicionales de training normalizadas en tamaño 64\*64 sin respetar las proporciones originales.
@@ -279,13 +284,13 @@ Con el objetivo de sacarle el máximo partido a este modelo decidimos realizar u
 
 Obteniendo como mejor modelo aquel con parámetros adam y tamaño batch 32 obteniendo un 0,9198 sobre validación, usamos ese modelo como base y lo entrenamos durante más ápocas pero los resultados no mejoraban, por lo que no llegamos a realizar una subida con dicho modelo.
 
-#### Red pre-entrenada
+#### 3.2.2. Red pre-entrenada
 
 Hemos usado Inception V3 (GoogleNet) y VGG16 (Visual Geometry Group de la Universidad Oxford) como redes pre-entrenadas, puesto que la primera nace en Google y cuenta con su aval, y la segunda, porque refieren en la comunidad de Kaggle que da buenos resultados con este problema, y por sobre todo, es manejable con nuestras capacidades de cómputo. Inception V3, era prácticamente imposible utilizarlo en nuestros ordenadores, reducimos las imágenes a 150\*150 px, puesto que este modelo exige 139\*139 px como mínimo, al contrario de VGG16, que con 48\*48 px basta, por ello con VGG16 utilizamos conjunto de imágenes de 64\*64 px.
 
 Finalmente sólo hemos hecho ejecuciones con Inception V3, porque VGG16, al ser más ligera de capas y requisitos, creímos conveniente utilizarla (y reservarla) para fine-tuning. Con 90 épocas y 12 horas de cómputo (en el ordenador con GPU) los resultados obtenidos no fueron muy buenos utilizando los pesos de *Imagenet*. El conjunto de imágenes utilizadas en estas ejecuciones eran respetando el *aspect ratio*, con data augmentation y tamaños de 150\*150px, lo cuál hacía que ocupe toda la memoria RAM del equipo (llegando a 12 GB, ocupando 4 GB en memoria de intercambio).
 
-#### Fine-tuning
+#### 3.2.3. Fine-tuning
 
 En [8] explican que para realizar el fine-tuning, en nuestro caso, es favorable primero entrenar el clasificador de nivel superior, y sólo entonces comenzar a ajustar los pesos convolucionales a su lado. Por ello, elegimos ajustar sólo el último bloque convolucional en lugar de toda la red para evitar overfitting, ya que toda la red tendría una gran capacidad entrópica y, por lo tanto, una fuerte tendencia a sobreaprendizaje. Las características aprendidas por los bloques convolucionales de bajo nivel son más generales, menos abstractas que las encontradas más arriba, por lo que es razonable mantener los primeros bloques fijos (características más generales) y ajustar sólo la última (más características especializadas). El fine-tuning debe hacerse con una velocidad de aprendizaje muy lenta, típicamente con el optimizador de SGD en lugar de RMSProp por ejemplo, para asegurarse de que la magnitud de las actualizaciones se mantiene muy pequeña, para no arruinar las funciones previamente aprendidas.
 
@@ -314,7 +319,7 @@ model.compile(loss='sparse_categorical_crossentropy',
 
 Lastimosamente, aunque el resultado fue relativamente bueno, no fue el esperado, puesto que quedo por debajo de nuestro modelo con *from scratch* por unas décimas, ya que esperabámos sea el modelo que nos catapulte a un mejor resultado en la competición. En total hemos corrido 60 épocas a las capas nuevas en transfer learning, y 90 a fine-tuning, en 13 horas de cómputo con el equipo de GPU.
 
-#### Uso de CNNs con Machine Learning
+#### 3.2.4. Uso de CNNs con Machine Learning
 
 En [8] y [15] se extraen características de modelos de CNNs, en [8], al igual que en [7], lo hacen para volver a entrenar con otra CNN, pero como nosotros ya habíamos empezado con CNNs, decidimos extraer características para utilizarlas con modelos de *Machine Learning* (ML) como el todoterreno *Random Forest* (RF) y el típico aplicado a imágenes: *SVM* (Support Vector Machine). En [15] se extraen características de una CNN, y la pasan a algoritmos de ML, para ello se valen del módulo *scikit-learn* de Python [9], el cual provee varios algoritmos de ML, es como el *Keras* de Deep Learning.
 
@@ -345,14 +350,14 @@ svcClf = SVC(kernel="rbf", verbose=True, decision_function_shape='ovo', probabil
 
 Aquí elegimos que el esquema que queremos que siga para la clasificación, sea de tipo OVO (One Vs. One) y especificando que queremos obtener las probabilidades con las que ha clasificado cada una de las instancias, como kernel, las funciones de base radial.
 
-#### OVA
+#### 3.2.5. OVA
 Adicionalmente a los modelos mencionados previamente decidimos probar alguna de las técnicas de división de un problema de clasificación multiclase en un problema binario. Una de estas técnicas es One-vs-One (OVO) que se basa en generar 1 clasificador por cada pareja de clases, en el caso de nuestro problema se generarían tres clasificadores, uno para distinguir entre el tipo 1 y el 2, otro para el 1 y el 3 y otro para el 2 y el 3. Posteriormente se combinarían las predicciones de cada uno de los clasificadores individuales.
 
 Otra técnica es One-vs-All (OVA) que crea un clasificador individual por cada clase independiente del problema, cada uno de estos clasificadores se entrena para distinguir entre su clase y todas las demás (sin distinguir entre ellas) combinando posteriormente los resultados de todos los clasificadores.
 
 Nos hemos decantado por probar esta última alternativa, ya que nos parecía más simple de llevar a cabo por no tener muy claro como combinar los resultados en el caso de OVO. Por ello partiendo del modelo básico de learning from scratch (ya que sus tiempos eran aceptables) se dividió el dataset en 3 cambiando las etiquetas para que fueran tipo n y el resto otros pasando estos 3 datasets a 3 copias del mismo modelo y entrenándolos con las imágenes en 64\*64 con tamaño de batch 32 y 20% de datos para validación. Para combinar los resultados simplemente extraemos de cada clasificador el valor de la predicción de la clase para la que está entrenado, obviamente estos resultados no suman 1, pero según se menciona en las normas de Kaggle esto no es necesario. El modelo obtuvo un total de 0.9905 en Kaggle con 480 épocas, un porcentaje no muy bueno, probablemente debido a la naturaleza desbalanceada del dataset, en especial si se tiene en cuenta que para pasar el dataset a estos modelos unimos dos clases por lo que queda claramente desbalanceado y aunque los modelos individuales de cada clase no obtienen malos resultados, esto se debe a que mayormente predicen la clase "Otros", no la clase para la que han sido creados. Este modelo se podria mejorar utilizando las técnicas que hemos visto en clase para tratar problemas no balanceados como puede ser un _undersampling_ u _oversampling_.
 
-### Comparativa de soluciones
+### 3.3. Comparativa de soluciones
 Después de haber ejecutado todas estas técnicas en este apartado vamos a compararlos. Nuestra experiencia es que con modelos simples pero bien adaptados al problema (nuestras redes de learning from scratch) parecen funcionar mejor que muchos modelos más complejos como puede ser el fine-tuning, probablemente por nuestro desconocimiento a la hora de aplicar técnicas más avanzadas. Nuestro mejor resultado lo hemos obtenido con extracción de características con la red VGG tras aplicarle fine-tunning y prediciendo con una SVM. Teniendo en cuenta que el modelo de VGG no parece haber aprendido demasiado bien esto nos lleva a pensar que extracción de características con un buen modelo de CNN es potencialmente mejor de lo que hemos llegado a obtener.
 
 Respecto a las redes pre-entrenadas no parecen funcionar muy bien ya que en general estos modelos han sido entrenados con la base de datos Imagenet que contiene imágenes cotidianas, muy diferentes de las imaágenes de nuestro problema, por lo que es necesario adaptar estos modelos realizándoles fine-tunning.
@@ -365,7 +370,7 @@ Mencionar que hemos empleado un script donde se implementa la función Log Loss 
 
 Breve resumen de las técnicas aplicadas y de los resultados obtenidos.
 
-### Trabajo futuro
+### 4.1. Trabajo futuro
 
 En este apartado hablaremos de ideas para continuar mejorando las soluciones desarrolladas y razonar nuevas posibilidades.
 
@@ -375,7 +380,7 @@ Como trabajo futuro, podríamos también convertir el problema multiclase en bin
 
 Aplicar OVO además de OVA, de una manera *manual*, puesto que existen módulos como *scikit-learn* de Python, con modelos como SVM que permite aplicar OVO u OVA sobre un conjunto de datos como forma de la función de decisión. Con el mismo módulo, podemos utilizar OVO y OVA (OVR o One Vs. The Rest o método de relevancia binaria) como clasificadores, en [9] dan las pautas de cómo lo hacen, en el momento de la predicción con OVO, se selecciona la clase que recibió el mayor número de votos, suele ser más lento que OVA (y con menos interpretabilidad), sin embargo, puede ser ventajoso para algoritmos tales como algoritmos de kernel que no escalan bien: con OVO cada problema de aprendizaje individual sólo implica un pequeño subconjunto de los datos, mientras que con OVA, el conjunto de datos completo.
 
-### Conclusiones
+### 4.2. Conclusiones
 
 Para finalizar este documento recogeremos en este apartado nuestras impresiones finales sobre este trabajo. La lucha contra el cáncer es un tema interesante y de gran transcendencia en la actualidad, esto hace qu esta práctica resulte muy inspiradora al ver como se puede aplicar nuestros conocimientos en análisis de datos a problemas de primer orden. Nuestra experiencia previa con redes neuronales (en la asignatura de Inteligencia Computacional) se basó más en entender como funcionaban dichos modelos y muchos llegamos a implementar modelos simples sin ayuda de ninguna librería, por lo que uso de las herramientas descritas en esta memoria permite crear redes neuronales muy complejas sin demasiado esfuerzo lo que es una experiencia gratificante.
 
@@ -421,7 +426,7 @@ Posición al cierre de la primera etapa: 160
 <!-- Salto de página -->
 <div style="page-break-before: always;"></div>
 
-## Bibliografía
+## 6. Bibliografía
 
 <p id="1">
 
