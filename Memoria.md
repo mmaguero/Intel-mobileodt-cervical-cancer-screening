@@ -65,7 +65,7 @@ Ejemplo de Indice final eliminando el enlace y añadiendo el número de página
 
 ## 1. Exploración de datos
 
-Utilizaremos CNNs (Convolutional Neural Networks) y técnicas de clasificación para la predicción del conjunto de imágenes. Antes que nada descargamos las imágenes, hay un conjunto de train y otro de test, también un conjunto extra de train, alrededor de 35 GB en imágenes (2000*3000px aproximadamente, en formato .jpg), por lo que debemos aplicar técnicas para poder reducirlas. A simple vista, se ven imágenes de fondo verde, otras a color, enfocadas de distintos puntos, por lo que, además de reducirlas, se podría tratar de hacerlas más uniformes, en blanco y negro por ejemplo, utilizar data augmentation o aumento de datos, respetar la relación de aspecto, etc.
+Utilizaremos CNNs (Convolutional Neural Networks) y técnicas de clasificación para la predicción del conjunto de imágenes. Antes que nada descargamos las imágenes, hay un conjunto de train y otro de test, también un conjunto extra de train, alrededor de 35 GB en imágenes (de 2000\*3000 px a 3000\*4000 px aproximadamente, en formato .jpg), por lo que debemos aplicar técnicas para poder reducirlas. A simple vista, se ven imágenes de fondo verde, otras a color, enfocadas de distintos puntos, por lo que, además de reducirlas, se podría tratar de hacerlas más uniformes, en blanco y negro por ejemplo, utilizar data augmentation o aumento de datos, respetar la relación de aspecto, etc.
 
 Para comprobar si el conjunto de datos es balanceado o no-balanceado, necesitamos saber cuantos registros hay de cada variable de clase. Hasta 1.5 se considera clases balanceadas, poseemos tres tipos de clases:
 - Tipo 1, con 250
@@ -179,21 +179,21 @@ axes[0].set_xlabel("image count")
 type_aggregation_p.plot.barh(ax=axes[1])
 axes[1].set_xlabel("training size fraction")
 ```
-<img src="https://www.kaggle.io/svf/1263512/8dd58488255be0d7f6798385495dd5cb/__results___files/__results___5_2.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 450px; height: auto;"/>
+<img src="https://www.kaggle.io/svf/1263512/8dd58488255be0d7f6798385495dd5cb/__results___files/__results___5_2.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 420px; height: auto;"/>
 
 Lo mismo sucede sobre el conjunto de entrenamiento adicional (6734).
 
-<img src="https://www.kaggle.io/svf/1263512/8dd58488255be0d7f6798385495dd5cb/__results___files/__results___11_2.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 450px; height: auto;"/>
+<img src="https://www.kaggle.io/svf/1263512/8dd58488255be0d7f6798385495dd5cb/__results___files/__results___11_2.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 420px; height: auto;"/>
 
 Como era de esperarse al utilizar el conjunto total (8215), la tendencia es la misma.
 
-<img src="https://www.kaggle.io/svf/1263512/8dd58488255be0d7f6798385495dd5cb/__results___files/__results___15_2.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 450px; height: auto;"/>
+<img src="https://www.kaggle.io/svf/1263512/8dd58488255be0d7f6798385495dd5cb/__results___files/__results___15_2.png" alt="Cantidad de imágenes / Fracción de entrenamiento" style="width: 420px; height: auto;"/>
 
-Como se ven en lás imágenes, el conjunto de datos no es balanceado, tiene una cantidad considerable de imágenes y de gran tamaño. En el siguiente apartado hablaremos de los métodos de Preprocesamiento aplicados a este conjunto.
+Como se ven en lás imágenes, el conjunto de datos no es balanceado, tiene una cantidad considerable de imágenes y de gran tamaño. En el siguiente apartado hablaremos de los métodos de pre-procesamiento aplicados a este conjunto.
 
 ## 2. Preprocesamiento de datos
 
-Teniendo en cuenta que nos encontramos ante un problema de reconocimiento de imágenes las técnicas típicas que hemos aprendido de preprocesamiento como eliminación de outlayers, imputación de valores perdidos,... no son aplicables. Por ello hemos empleado algunas técnicas de preprocesamiento de imágenes.
+Teniendo en cuenta que nos encontramos ante un problema de reconocimiento de imágenes las técnicas típicas que hemos aprendido de preprocesamiento como eliminación de outlayers, imputación de valores perdidos... no son aplicables. Por ello hemos empleado algunas técnicas de preprocesamiento de imágenes.
 
 ### 2.1. Redimensionado
 Como se ha comentado ya las imágenes originales tienen una resolución muy elevada, cosa que las hace inmanejables en la práctica teniendo en cuenta nuestra capacidad computacional (un ordenador sin GPU y otro con una GPU de hace 4 años). Inicialmente partimos de unas imágenes redimensionadas por el profesor Juan Gómez en tamaño 256 \* 256 px cambiando las proporciones originales de las imágenes (que son distintas entre sí a su vez). Con el objetivo de lograr que ocuparan menos procedimos a redimensionar nosotros mismos las imágenes guardándolas en formato `.jpg` en lugar del `.png` en el que se encontraban las imágenes de Juan Gómez, ya que este formato aplica una compresión más fuerte a las imágenes aunque se produzca una pérdida de calidad de las mismas. Para llevar a cabo este redimensionado he utilizado el paquete de R [**EBImage**](https://www.bioconductor.org/packages/release/bioc/html/EBImage.html) como se recomendó en las clases de prácticas. Tras un elevado tiempo de computo se generaron 3 carpetas con las imágenes de train, test y train + adicionales respectivamente. Aun estas imágenes resultaban demasiado grandes para nuestros dispositivos, tras leer las imágenes en arrays de datos guardábamos estos arrays en disco en un único fichero para facilitar la lectura posterior, ocupando un total de 7 GB entre los archivos con las imágenes de test y las de train + adicionales. Por lo tanto estas imágenes saturaban nuestra memoria RAM y nos vimos obligados a redimensionarlas a un tamaño de 64 \* 64 px.
@@ -202,9 +202,9 @@ Con estas imágenes ya pudimos empezar a trabajar en modelos básicos, pero deci
 
 ![distintas interpolaciones](doc/imgs/ResizeInterpolations.PNG)
 
-Siguiendo las recomendaciones de la documentación para hacer imágenes más pequeñas se recomienda la interpolación CV_INTER_AREA por lo que es la que he aplicado, teniendo en cuenta que siempre voy a redimensionar imágenes para hacerlas pequeñas, no más grandes.
+Siguiendo las recomendaciones de la documentación para hacer imágenes más pequeñas se recomienda la interpolación CV_INTER_AREA por lo que es la que he aplicado, teniendo en cuenta que siempre se va a redimensionar imágenes para hacerlas pequeñas, no más grandes.
 
-Otra cosa que se nos ocurrió para poder mejorar la calidad de los datos era hacer una redimensión que respete las proporciones originales de las imágenes, ya que estas son diferentes (algunas más anchas que altas y viceversa) para ello llevamos a cabo una redimensión alternativa que respetaba las proporciones a costa de recortar algunos trozos periféricos de las imágenes. Esto podría parecer perjudicial, pero la gran mayoría de las imágenes la región de interés se encuentra centrada, bien en un circulo como se aprecia en la imagen previa o bien con su fondo original, pero en cualquiera de los casos la zona uterina se encuentra en el centro. En la siguiente imagen podemos comparar los resultados viendo la imagen original a la izquierda y los dos tipos de redmiensiones en 256\*256.
+Otra cosa que se nos ocurrió para poder mejorar la calidad de los datos era hacer una redimensión que respete las proporciones originales de las imágenes, ya que estas son diferentes (algunas más anchas que altas y viceversa) para ello llevamos a cabo una redimensión alternativa que respetaba las proporciones a costa de recortar algunos trozos periféricos de las imágenes. Esto podría parecer perjudicial, pero la gran mayoría de las imágenes la región de interés se encuentra centrada, bien en un círculo como se aprecia en la imagen previa o bien con su fondo original, pero en cualquiera de los casos la zona uterina se encuentra en el centro. En la siguiente imagen podemos comparar los resultados viendo la imagen original a la izquierda y los dos tipos de redimensiones en 256\*256.
 
 ![Redimensión con cambio de proporciones](doc/imgs/ResizeAspectRatio.PNG)
 
@@ -216,7 +216,7 @@ Adicionalmente hemos creado diversas redimensiones para distintos modelos que no
 Para facilitar la predicción a los modelos con este dataset hemos visto en múltiples ejemplos y familias de modelos distintos que suele ser recomendable normalizar los datos antes de pasarlos al modelo, es decir cambiar el valor de los píxeles de cada uno de los canales del rango 0-255 al rango 0-1, para ello dividimos todos los valores de los píxeles entre 255 tras redimensionar.
 
 ### 2.3. Aumento de datos
-Partiendo de [3] hemos intentado generar más imágenes a partir las existentes utilizando un método para extraer el area de interés o ROI en inglés, este método simplemente normaliza las imágenes pasándolas a blanco y negro y hace que aquellos píxeles cuyo valor sea menor 0,7 (no sean demasiado claros) se conserven en la imagen generada y aquellos muy claros se pongan a negro, este método es demasiado aleatorio para generar imágenes nuevas, ya que dependiendo de las características de cada imagen algunas si que funcionan bíen, pero aquellas que tienen más luz pierden demasiada información.
+Partiendo de [3] hemos intentado generar más imágenes a partir las existentes utilizando un método para extraer el área de interés o *ROI* en inglés, este método simplemente normaliza las imágenes pasándolas a blanco y negro y hace que aquellos píxeles cuyo valor sea menor 0,7 (no sean demasiado claros) se conserven en la imagen generada y aquellos muy claros se pongan a negro, este método es demasiado aleatorio para generar imágenes nuevas, ya que dependiendo de las características de cada imagen algunas si que funcionan bíen, pero aquellas que tienen más luz pierden demasiada información.
 
 En la siguiente imagen podemos apreciar la imagen original usada previamente para comparar con su homologa tras pasar por el método de extracción del ROI y redimensión a 256\*256
 ![Imagen con su ROI](doc/imgs/ROI.PNG)
@@ -239,9 +239,7 @@ Donde se establecen las transformaciones a llevar a cabo, se puede ver que se ap
 
 ## 3. Técnicas de clasificación y discusión de resultados
 
-Discusión de las técnicas y herramientas de clasificación empleadas, justificación de su elección.
-
-Descripción y discusión de las soluciones obtenidas, incidiendo en la interpretación de los resultados. Análisis comparativo en caso de utilizar diferentes técnicas y/o parámetros de configuración en diferentes aproximaciones.
+Discusión de las técnicas y herramientas de clasificación empleadas, justificación de su elección. Descripción y discusión de las soluciones obtenidas, incidiendo en la interpretación de los resultados. Análisis comparativo de las diferentes técnicas y/o parámetros de configuración en diferentes aproximaciones.
 
 ### Herramientas
 
@@ -249,15 +247,15 @@ Hemos utilizado [Keras](https://keras.io/), una librería de Python para Deep Le
 
 Además nos hemos valido de [Scikit-learn](http://scikit-learn.org), una librería de Python para Machine Learning, para realizar predicciones con algoritmos de clasificación sobre las características extraídas de las CNNs.
 
-La decisión de utilizar de estas herramientas es porqué son las más populares en el ámbito de la competencia, en la misma página de Kaggle hay mucha documentación proporcionada por la comunidad: como discusiones, tutoriales, etc. Además hoy por hoy, Tensorflow se ganado el mercado de Deep Learning, que con Keras se logra abstraerla bastante, pudiendo aprovecharla en tan sólo pocas líneas. Intentamos utilizar además las herramientas sugeridas en la asignatura sin éxito, puede consultarse más abajo el Apartado *Otras herramientas* para más detalles.
+La decisión de utilizar de estas herramientas es porqué son las más populares en el ámbito de la competencia, en la misma página de Kaggle hay mucha documentación proporcionada por la comunidad: como discusiones, tutoriales o kernels, etc. Además hoy por hoy, Tensorflow se ha ganado el mercado de Deep Learning, que con Keras se logra abstraerla bastante, pudiendo aprovecharla en tan sólo pocas líneas. Intentamos utilizar además las herramientas sugeridas en la asignatura sin éxito, puede consultarse más abajo el Apartado *Otras herramientas* para más detalles.
 
 #### Otras herramientas
 
-Primeramente hemos intentado utilizar las herramientas propuestas en clase, [Intel Deep Learning SDK](https://software.intel.com/en-us/deep-learning-training-tool) y [MXNet](http://mxnet.io/api/r/index.html) con R. La primera presentó muchos problemas a la hora de la instalación, que una vez subsanados, al ser una herramienta en versión beta, no iba muy bien de rendimiento en local sobre Linux: tiempos de cómputo altos dejando inutilizado el ordenador para otras tareas, incluso a veces la herramienta daba fallos posteriores a la instalación y uso que que la dejaba no funcional. Pero creemos que en un futuro sería una herramienta muy completa, puesto que se pueden utilizar varias técnicas a tan sólo un clic. Tambíen pensamos que esta herramienta más orientada a ser desplegada en potentes servidores o clusters a los que accedan los usuarios de la herramienta mediante la interfaz web, que en un portatil de prestaciones normales y unos cuantos años de antigüedad como de los que disponemos actualmente. Sobre MXNET, como veníamos familiarizados con ella (al utilizarla en prácticas), quisimos montarla sobre GPU (dedicando 3 días para su compilación en un SO Windows), pero el resultado no fue bueno, con o sin GPU no se completaban las tareas, ya que R Studio, no podía funcionar del todo bien con MXNet.
+Primeramente hemos intentado utilizar las herramientas propuestas en clase, [Intel Deep Learning SDK](https://software.intel.com/en-us/deep-learning-training-tool) y [MXNet](http://mxnet.io/api/r/index.html) con R. La primera presentó muchos problemas a la hora de la instalación, que una vez subsanados, al ser una herramienta en versión beta, no iba muy bien de rendimiento en local sobre Linux: tiempos de cómputo altos dejando inutilizado el ordenador para otras tareas, incluso a veces, la herramienta daba fallos posteriores a la instalación y uso, que la dejaba no funcional. Pero creemos que en un futuro sería una herramienta muy completa, puesto que se pueden utilizar varias técnicas a tan sólo un clic. Tambíen pensamos que esta herramienta, está más orientada a ser desplegada en potentes servidores o *clusters* a los que accedan los usuarios de la herramienta mediante la interfaz web, que en un portátil de prestaciones normales y unos cuantos años de antigüedad como de los que disponemos actualmente. Sobre MXNET, como veníamos familiarizados con ella (al utilizarla en prácticas), quisimos montarla sobre GPU (dedicando 3 días para su compilación en un S.O. Windows), pero el resultado no fue bueno, con o sin GPU no se completaban las tareas, ya que R Studio, no podía funcionar del todo bien con MXNet.
 
-Además de las anteriores, intentamos aprovechar el [clúster Colfax](https://colfaxresearch.com/kaggle-2017/) ofrecido por Intel para los participantes en la competición de Kaggle. Este cluster cuenta con instancias de 256 cores o 96 GB de RAM, por lo que parece prometedora su potencia. Utilizando Keras y Theano como backend, nos fue imposible instalar algunos módulos de Python, puesto que utilizan su propia arquitectura y hay algunos paquetes, módulos o versiones faltantes, y el camino para hacerlo funcionar era largo y extenso; con TensorFlow como backend, solo corría en un core probablemente debido a que no se encuentra disponible para la arquitectura de Intel, con un tiempo de cómputo de un ordenador stándart mucho menor. Para lo que si nos fue útil, fue para el tratamiento de imágenes, donde si pudimos aprovechar la capacidad de cómputo de este clúster. Además en el preprocesamiento, como se mencionó anteriormente utilizamos EBImage, una librería de R para el tratamiento de imágenes.
+Además de las anteriores, intentamos aprovechar el [clúster Colfax](https://colfaxresearch.com/kaggle-2017/) ofrecido por Intel para los participantes en la competición de Kaggle. Este clúster cuenta con instancias de 256 cores o 96 GB de RAM, por lo que parece prometedora su potencia. Utilizando Keras y Theano como backend, nos fue imposible instalar algunos módulos de Python, puesto que utilizan su propia arquitectura y hay algunos paquetes, módulos o versiones faltantes, y el camino para hacerlo funcionar era largo y extenso; con TensorFlow como backend, solo corría en un core probablemente debido a que no se encuentra disponible para la arquitectura de Intel, con un tiempo de cómputo de un ordenador stándart mucho menor. Para lo que si nos fue útil, fue para el tratamiento de imágenes y para correr modelos de Machine Learning, donde si pudimos aprovechar la capacidad de cómputo de este clúster. Además en el pre-procesamiento, como se mencionó anteriormente utilizamos EBImage, una librería de R para el tratamiento de imágenes.
 
-Incluso hemos intentando contratar instancias de [Amazon Web Services (AWS)](https://aws.amazon.com/es/ec2/Elastic-GPUs/) con GPU con nuestras cuentas de estudiante pero no era posible utilizar éstas debido a las limitaciones de dichas cuentas.
+Incluso hemos intentando contratar instancias de [Amazon Web Services (AWS)](https://aws.amazon.com/es/ec2/Elastic-GPUs/) con GPU con nuestras cuentas de estudiante pero no era posible utilizar éstas debido a las limitaciones de dichas cuentas, encontrándonos con instancias virtuales con capacidades iguales o peores que nuestros ordenadores y sin la posibilidad de utilizar GPU.
 
 ### Técnicas
 
@@ -266,9 +264,9 @@ Partiendo del ejemplo disponible en [3] creamos una red neuronal convolutiva con
 ![Arquitectura de la red inicial](doc/imgs/model_21-06-2017_17-34.png)
 Con este modelo lanzamos una primera ejecución con 320 épocas alcanzando un total de 0.88509 aplicando el aumento de datos básico con tamaño de batch de 32 para la generación de imágenes y algo de zoom y rotación realizado en [3] y utilizando las imágenes adicionales de training normalizadas en tamaño 64\*64 sin respetar las proporciones originales.
 
-Animados con este resultado y su tiempo de ejecución que no estaba nada mal (unos 10 s por época) decidimos probar a lanzar el mismo modelo utilizando cluster Colfax mencionado previamente, pero esta vez sin utilizar las imágenes adicionales y manteniendo el resto de parámetros iguales, en este caso lanzamos el modelo durante 600 épocas guardando el mejor modelo producido utilizando como criterio el logloss sobre el conjunto de validación. Este conjunto de validación es un subconjunto del de entrenamiento que no se le ha enseñado al modelo y se utiliza para hacerse una idea de como generaliza el modelo, es decir de lo bueno que será con el conjunto de test. El mejor modelo obtenido fue nuestra segunda subida en Kaggle puntuando un total de 1.30324, muy lejos de nuestro primer modelo, lo cual denota la importancia de tener más datos en este problema, ya que aún con las imágenes adicionales no son suficientes para entrenar modelos de Deep Learning. Esta ejecución también nos permitió percatarnos de los problemas con Colfax ya que los tiempos eran desorbitados en comparación con nuestros equipos, debido a que no paralelizaba con TensorFlow (tardó más de 24 h en finalizar la ejecución).
+Animados con este resultado y su tiempo de ejecución que no estaba nada mal (unos 10 s por época) decidimos probar a lanzar el mismo modelo utilizando clúster Colfax mencionado previamente, pero esta vez sin utilizar las imágenes adicionales y manteniendo el resto de parámetros iguales, en este caso lanzamos el modelo durante 600 ápocas guardando el mejor modelo producido utilizando como criterio el *logloss* sobre el conjunto de validación. Este conjunto de validación es un subconjunto del de entrenamiento que no se le ha enseñado al modelo y se utiliza para hacerse una idea de como generaliza el modelo, es decir de lo bueno que será con el conjunto de test. El mejor modelo obtenido fue nuestra segunda subida en Kaggle puntuando un total de 1.30324, muy lejos de nuestro primer modelo, lo cual denota la importancia de tener más datos en este problema, ya que aún con las imágenes adicionales no son suficientes para entrenar modelos de Deep Learning. Esta ejecución también nos permitió percatarnos de los problemas con Colfax, ya que los tiempos eran desorbitados en comparación con nuestros equipos, debido a que no paralelizaba con TensorFlow (tardó más de 24 h en finalizar la ejecución).
 
-Tras perder una mañana intentando configurar Colfax para ejecutar modelos usando Theano pasamos a intentar mejorar el modelo, para ello redujimos el porcentaje de instancias de training dedicadas a validación del 20 al 10 %, además nos pusimos a buscar distintos algoritmos de optimización para redes neuronales además del _adamax_ que utilizaba por defecto nuestra red, buscando en diversos sitios vimos que _adadelta_ parece minimizar el loss bastante bien como se ve en la siguiente gráfica de loss contra numero de ejemplos vistos por la red neuronal (aunque no se especifique la función de loss concreta)
+Tras perder una mañana intentando configurar Colfax para ejecutar modelos usando Theano pasamos a intentar mejorar el modelo, para ello redujimos el porcentaje de instancias de training dedicadas a validación del 20 al 10 %, además nos pusimos a buscar distintos algoritmos de optimización para redes neuronales además del adamax, que utilizaba por defecto nuestra red, buscando en diversos sitios vimos que *adadelta* parece minimizar el loss bastante bien como se ve en la siguiente gráfica de loss contra numero de ejemplos vistos por la red neuronal (aunque no se especifique la función de loss concreta).
 
 ![Gráfica de valor de loss con distintas optimizaciones contra el numero de instancias vistas](doc/imgs/adadelta.png)
 
@@ -279,31 +277,48 @@ Con el objetivo de sacarle el máximo partido a este modelo decidimos realizar u
 - Tamaño de batch: 16, 32, 64
 - Numero de épocas: 30
 
-Obteniendo como mejor modelo aquel con parámetros adam y tamaño batch 32 obteniendo un 0,9198 sobre validación, usamos ese modelo como base y lo entrenamos durante más épocas pero los resultados no mejoraban por lo que no llegamos a realizar una subida con dicho modelo.
-
-
+Obteniendo como mejor modelo aquel con parámetros adam y tamaño batch 32 obteniendo un 0,9198 sobre validación, usamos ese modelo como base y lo entrenamos durante más ápocas pero los resultados no mejoraban, por lo que no llegamos a realizar una subida con dicho modelo.
 
 #### Red pre-entrenada
 
 Hemos usado Inception V3 (GoogleNet) y VGG16 (Visual Geometry Group de la Universidad Oxford) como redes pre-entrenadas, puesto que la primera nace en Google y cuenta con su aval, y la segunda, porque refieren en la comunidad de Kaggle que da buenos resultados con este problema, y por sobre todo, es manejable con nuestras capacidades de cómputo. Inception V3, era prácticamente imposible utilizarlo en nuestros ordenadores, reducimos las imágenes a 150\*150 px, puesto que este modelo exige 139\*139 px como mínimo, al contrario de VGG16, que con 48\*48 px basta, por ello con VGG16 utilizamos conjunto de imágenes de 64\*64 px.
 
-Finalmente sólo hemos hecho ejecuciones con Inception V3, porque VGG16, al ser más ligera de capas y requisitos, creímos conveniente utilizarla para fine-tuning. Con 90 épocas y 12 horas de cómputo (en el ordenador con GPU) los resultados obtenidos no fueron muy buenos utilizando los pesos de Imagenet. El conjunto de imágenes utilizadas en estas ejecuciones eran respetando el *aspect ratio*, con data augmentation y tamaños de 150\*150px, lo cuál hacía que ocupe toda la memoria RAM del equipo (llegando a 12 GB, ocupando 4 GB en memoria de intercambio).
+Finalmente sólo hemos hecho ejecuciones con Inception V3, porque VGG16, al ser más ligera de capas y requisitos, creímos conveniente utilizarla (y reservarla) para fine-tuning. Con 90 épocas y 12 horas de cómputo (en el ordenador con GPU) los resultados obtenidos no fueron muy buenos utilizando los pesos de *Imagenet*. El conjunto de imágenes utilizadas en estas ejecuciones eran respetando el *aspect ratio*, con data augmentation y tamaños de 150\*150px, lo cuál hacía que ocupe toda la memoria RAM del equipo (llegando a 12 GB, ocupando 4 GB en memoria de intercambio).
 
 #### Fine-tuning
 
 En [8] explican que para realizar el fine-tuning, en nuestro caso, es favorable primero entrenar el clasificador de nivel superior, y sólo entonces comenzar a ajustar los pesos convolucionales a su lado. Por ello, elegimos ajustar sólo el último bloque convolucional en lugar de toda la red para evitar overfitting, ya que toda la red tendría una gran capacidad entrópica y, por lo tanto, una fuerte tendencia a sobreaprendizaje. Las características aprendidas por los bloques convolucionales de bajo nivel son más generales, menos abstractas que las encontradas más arriba, por lo que es razonable mantener los primeros bloques fijos (características más generales) y ajustar sólo la última (más características especializadas). El fine-tuning debe hacerse con una velocidad de aprendizaje muy lenta, típicamente con el optimizador de SGD en lugar de RMSProp por ejemplo, para asegurarse de que la magnitud de las actualizaciones se mantiene muy pequeña, para no arruinar las funciones previamente aprendidas.
 
-<img src="https://blog.keras.io/img/imgclf/vgg16_modified.png" alt="Fine-tuning con VGG16" style="width: 300px; height: auto; display: left; margin: auto;"/>
+```python
+...
+x = Flatten()(myModel.output)
+x = Dense(256, activation='relu')(x)
+output = Dense(3, activation='softmax')(x)
+...
+```
 
-**Mencionar cuales son nuestras capas añadidas**
+Partiendo del script [5], [6], [7] y [8] utilizado para lanzar ejecuciones con una red pre-entrenada, logramos adaptarlo para fine-tuning, en la imagen de abajo, en verde, se ve que aplanamos la salida: le agregamos una capa densa, de dimensión 3 y función de activación softmax, antes una densa de dimensión 256 y función de activación relu, lo hacemos de esa manera, para nos descender bruscamente de una dimensión de 512 (de VGG16) a 3 (propia de nuestro caso). Decidimos realizar las pruebas sobre VGG16 por ser más ligero, debido a nuestras capacidades de cómputo, con pesos de Imagenet e imágenes de 64\*64 px, con data augmentation, respetando el *aspect ratio*. Para fine-tuning, tal como lo hicimos con la red pre-entrenada, poníamos las capas de VGG16 o Inception V3 a no entrenables, y le agregabámos la salida adaptada a nuestro problema; no obstante, a diferencia de una red pre-entrenada, es necesario realizar un entrenamiento con las capas de abajo, para VGG16 tomamos las últimas 15.
 
-Partiendo del script [5], [6], [7] y [8] utilizado para lanzar ejecuciones con una red pre-entrenada, logramos adaptarlo para fine-tuning. Decidimos realizar las pruebas sobre VGG16 por ser más ligero, debido a nuestras capacidades de cómputo, con pesos de Imagenet e imágenes de 64\*64 px, con data augmentation, respetando el *aspect ratio*. Para fine-tuning, tal como lo hicimos con la red pre-entrenada, poníamos las capas de VGG16 o Inception V3 a no entrenables, y le agregabámos la salida adaptada a nuestro problema; no obstante, a diferencia de una red pre-entrenada, es necesario realizar un entrenamiento con las capas de abajo, para VGG16 tomamos las últimas 15. Lastimosamente, aunque el resultado fue bueno, no fue el esperado, puesto que quedo por debajo de nuestro modelo con *from scratch* por unas décimas, ya que esperabámos sea el modelo que nos catapulte a un mejor resultado en la competición. En total hemos corrido 60 épocas a las capas nuevas, y 90 a fine-tuning, en 13 horas de cómputo con el equipo de GPU.
+```python
+...
+for layer in model.layers[:15]:
+  layer.trainable = False
+for layer in model.layers[15:]:
+  layer.trainable = True
+...
+model.compile(loss='sparse_categorical_crossentropy',
+              optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
+              metrics=['accuracy'])
+```
+<img src="https://blog.keras.io/img/imgclf/vgg16_modified.png" alt="Fine-tuning con VGG16" style="width: 320px; height: auto; display: block; margin: auto;"/>
+
+Lastimosamente, aunque el resultado fue relativamente bueno, no fue el esperado, puesto que quedo por debajo de nuestro modelo con *from scratch* por unas décimas, ya que esperabámos sea el modelo que nos catapulte a un mejor resultado en la competición. En total hemos corrido 60 épocas a las capas nuevas en transfer learning, y 90 a fine-tuning, en 13 horas de cómputo con el equipo de GPU.
 
 #### Uso de CNNs con Machine Learning
 
 En [8] y [15] se extraen características de modelos de CNNs, en [8], al igual que en [7], lo hacen para volver a entrenar con otra CNN, pero como nosotros ya habíamos empezado con CNNs, decidimos extraer características para utilizarlas con modelos de *Machine Learning* (ML) como el todoterreno *Random Forest* (RF) y el típico aplicado a imágenes: *SVM* (Support Vector Machine). En [15] se extraen características de una CNN, y la pasan a algoritmos de ML, para ello se valen del módulo *scikit-learn* de Python [9], el cual provee varios algoritmos de ML, es como el *Keras* de Deep Learning.
 
-En base a la literatura [15] [9], preparamos ejecuciones con *features maps* del modelo VGG16, con la red pre-entrenada y con *fine-tuning*, respectivamente con la red completa y tomando la última capa convolutiva.
+En base a la literatura [15] [9], preparamos ejecuciones con *features maps* del modelo VGG16, con la red pre-entrenada y con *fine-tuning*, respectivamente con la red completa y tomando la última capa convolucional.
 
 ```python
 model = VGG16(weights='imagenet', include_top=False, input_shape=(3, imgSize, imgSize))
@@ -315,7 +330,7 @@ y
 model = Model(input=baseModel.input, outputs=baseModel.get_layer("block5_pool").output)
 ```
 
-Las ejecuciones se hicieron con un conjunto de imágenes (incluyendo las extras) sin y con data augmentation (alrededor de 96000 imágenes), manteniendo el ratio en un tamaño de 64\*64 px, para los algoritmos RF y SVM de ML. Con el primero no se lograron resultados demasiado buenos, antes de lanzarlo, probamos con 100, 1000 y 2000 arboles con el conjunto sin data augmentation, resultando mejor ésta, que con data augmentation y 2000 arboles, creemos que esto se debe al overfitting al haber tantas imágenes.
+Las ejecuciones se hicieron con un conjunto de imágenes (incluyendo las extras) sin y con data augmentation (alrededor de 96000 imágenes), manteniendo el ratio en un tamaño de 64\*64 px, para los algoritmos RF y SVM de ML. Con el primero no se lograron resultados demasiado buenos, antes de lanzarlo, probamos con 100, 1000 y 2000 arboles con el conjunto sin data augmentation, resultando mejor ésta (0.844) (con _gini_ como la función para medir la calidad de una división), que con data augmentation y 2000 arboles, creemos que esto se debe al overfitting al haber tantas imágenes (0.91).
 
 ```python
 rfClf = RandomForestClassifier(n_estimators=2000, oob_score=True, n_jobs=-1, random_state=RDM, verbose=20,
@@ -328,42 +343,45 @@ Cabe destacar, que estas ejecuciones fueron ya fuera de fecha a la primera etapa
 svcClf = SVC(kernel="rbf", verbose=True, decision_function_shape='ovo', probability=True, cache_size=5500)
 ```
 
+Aquí elegimos que el esquema que queremos que siga para la clasificación, sea de tipo OVO (One Vs. One) y especificando que queremos obtener las probabilidades con las que ha clasificado cada una de las instancias, como kernel, las funciones de base radial.
+
 #### OVA
 Adicionalmente a los modelos mencionados previamente decidimos probar alguna de las técnicas de división de un problema de clasificación multiclase en un problema binario. Una de estas técnicas es One-vs-One (OVO) que se basa en generar 1 clasificador por cada pareja de clases, en el caso de nuestro problema se generarían tres clasificadores, uno para distinguir entre el tipo 1 y el 2, otro para el 1 y el 3 y otro para el 2 y el 3. Posteriormente se combinarían las predicciones de cada uno de los clasificadores individuales.
 
 Otra técnica es One-vs-All (OVA) que crea un clasificador individual por cada clase independiente del problema, cada uno de estos clasificadores se entrena para distinguir entre su clase y todas las demás (sin distinguir entre ellas) combinando posteriormente los resultados de todos los clasificadores.
 
-Nos hemos decantado por probar esta última alternativa, ya que nos parecia más simple de llevar a cabo por no tener muy claro como combinar los resultados en el caso de OVO. Por ello partiendo del modelo básico de learning from scratch (ya que sus tiempos eran aceptables) se dividío el dataset en 3 cambiando las etiquetas para que fueran tipo n y el resto otros pasando estos 3 datasets a 3 copias del mismo modelo y entrenándolos con las imágenes en 64\*64 con tamaño de batch 32 y 20% de datos para validación. Para combinar los resultados simplemente extraemos de cada clasificador el valor de la predicción de la clase para la que está entrenado, obviamente estos resultados no suman 1, pero según se menciona en las normas de Kaggle esto no es necesario. El modelo obtuvo un total de 0.9905 en Kaggle con 480 épocas, un porcentaje no muy bueno, probablemente debido a la naturaleza desbalanceada del dataset, en especial si se tiene en cuenta que para pasar el dataset a estos modelos unimos dos clases por lo que queda claramente desbalanceado y aunque los modelos individuales de cada clase no obtienen malos resultados, esto se debe a que mayormente predicen la clase "Otros", no la clase para la que han sido creados. Este modelo se podría mejorar utilizando las técnicas que hemos visto en clase para tratar problemas no balanceados como puede ser un _undersampling_ u _oversampling_.
+Nos hemos decantado por probar esta última alternativa, ya que nos parecía más simple de llevar a cabo por no tener muy claro como combinar los resultados en el caso de OVO. Por ello partiendo del modelo básico de learning from scratch (ya que sus tiempos eran aceptables) se dividió el dataset en 3 cambiando las etiquetas para que fueran tipo n y el resto otros pasando estos 3 datasets a 3 copias del mismo modelo y entrenándolos con las imágenes en 64\*64 con tamaño de batch 32 y 20% de datos para validación. Para combinar los resultados simplemente extraemos de cada clasificador el valor de la predicción de la clase para la que está entrenado, obviamente estos resultados no suman 1, pero según se menciona en las normas de Kaggle esto no es necesario. El modelo obtuvo un total de 0.9905 en Kaggle con 480 épocas, un porcentaje no muy bueno, probablemente debido a la naturaleza desbalanceada del dataset, en especial si se tiene en cuenta que para pasar el dataset a estos modelos unimos dos clases por lo que queda claramente desbalanceado y aunque los modelos individuales de cada clase no obtienen malos resultados, esto se debe a que mayormente predicen la clase "Otros", no la clase para la que han sido creados. Este modelo se podria mejorar utilizando las técnicas que hemos visto en clase para tratar problemas no balanceados como puede ser un _undersampling_ u _oversampling_.
 
 ### Comparativa de soluciones
-Después de haber ejecutado todas estas técnicas en este apartado vamos a compararlos. Nuestra experiencia es que con modelos simples pero bien adaptados al problema (nuestras redes de learning from scratch) parecen funcionar mejor que muchos modelos más complejos como puede ser el fine-tuning, probablemente por nuestro desconocimiento a la hora de aplicar técnicas más avanzadas. Nuestro mejor resultado lo hemos obtenido con extracción de características con la red VGG tras aplicarle fine-tunning y prediciendo con una SVM. Teniendo en cuenta que el modelo de VGG no parece haber aprendido demasiado bien esto nos lleva a pensar que extracción de características con un buen modelo de CNN es potencialmente mejor de lo que hemos llegado a obtener. 
+Después de haber ejecutado todas estas técnicas en este apartado vamos a compararlos. Nuestra experiencia es que con modelos simples pero bien adaptados al problema (nuestras redes de learning from scratch) parecen funcionar mejor que muchos modelos más complejos como puede ser el fine-tuning, probablemente por nuestro desconocimiento a la hora de aplicar técnicas más avanzadas. Nuestro mejor resultado lo hemos obtenido con extracción de características con la red VGG tras aplicarle fine-tunning y prediciendo con una SVM. Teniendo en cuenta que el modelo de VGG no parece haber aprendido demasiado bien esto nos lleva a pensar que extracción de características con un buen modelo de CNN es potencialmente mejor de lo que hemos llegado a obtener.
 
 Respecto a las redes pre-entrenadas no parecen funcionar muy bien ya que en general estos modelos han sido entrenados con la base de datos Imagenet que contiene imágenes cotidianas, muy diferentes de las imaágenes de nuestro problema, por lo que es necesario adaptar estos modelos realizándoles fine-tunning.
 
 Las técnicas de descomposicón de problemas multiclase (OVO y OVA) dependen totalmente de los modelos básicos por lo que sería interesante probarlos con modelos complejos, pero no hemos podido por motivos temporales. OVA, que es la técnica que hemos probado, parece requerir más preprocesamiento teniendo especial cuidado con que se desbalancéen los problemas.
 
-Mencionar que hemos empleado un script donde se implementa la función Log Loss de Kaggle para poder seguir realizando pruebas una vez pasado el 14 de Junio. Dicho script ha sido desarrollado por nuestros compañeros Gustavo Rivas Gervilla y Alejandro Casado Quijada.
+Mencionar que hemos empleado un script donde se implementa la función Log Loss de Kaggle para poder seguir realizando pruebas una vez pasado el 14 de Junio. Dicho script ha sido desarrollado por nuestros compañeros Gustavo Rivas Gervilla y Alejandro Casado Quijada [17].
 
 ## 4. Conclusiones y trabajos futuros
 
 Breve resumen de las técnicas aplicadas y de los resultados obtenidos.
 
 ### Trabajo futuro
-... ideas para continuar mejorando las soluciones desarrolladas.
+
+En este apartado hablaremos de ideas para continuar mejorando las soluciones desarrolladas y razonar nuevas posibilidades.
 
 Se podría aplicar técnicas como *features extraction* sobre las imágenes, aunque eso requiere conocer a fondo herramientas como [OpenCV](http://opencv.org/) o [SciLab](http://www.scilab.org/), que se alejan del objetivo de la asignatura y requieren su esfuerzo de aprendizaje. En [11] mencionan que es útil para detectar y aislar diversas porciones o características de una imagen, particularmente importante en el área del *reconocimiento óptico de caracteres*. Existen técnicas de bajo nivel como la detección de bordes, o esquinas, entre otros, teniendo en cuenta la curvatura y el movimiento de la imagen; de forma basada, como umbrales, extracción de blob, o "Hough transform"; y otros de métodos flexibles, como formas parametrizables/deformables o contornos activos.
 
-Utilizar ensambles sobre CNN o ML
+Como trabajo futuro, podríamos también convertir el problema multiclase en binario y probar OVO en vez de OVA, hacer ensamble con técnicas de ML clásicas (con los mapas de características extraídos de una CNN,que además de RF y SVM, también podríamos utilizar GBoost) y Deep Learning. Es decir, utilizar ensambles sobre CNN o ML, con el objetivo de combinar varias de las técnicas utilizadas y mencionadas en este trabajo anteriormente, con el fin de obtener un mejor resultado, extrayendo lo mejor de cada uno.
 
-Aplicar OVO además de OVA, de una manera manual, puesto que existen módulos como scikit-learn de Python, con modelos como SVM que permite aplicar OVO sobre un conjunto de datos.
+Aplicar OVO además de OVA, de una manera *manual*, puesto que existen módulos como *scikit-learn* de Python, con modelos como SVM que permite aplicar OVO u OVA sobre un conjunto de datos como forma de la función de decisión. Con el mismo módulo, podemos utilizar OVO y OVA (OVR o One Vs. The Rest o método de relevancia binaria) como clasificadores, en [9] dan las pautas de cómo lo hacen, en el momento de la predicción con OVO, se selecciona la clase que recibió el mayor número de votos, suele ser más lento que OVA (y con menos interpretabilidad), sin embargo, puede ser ventajoso para algoritmos tales como algoritmos de kernel que no escalan bien: con OVO cada problema de aprendizaje individual sólo implica un pequeño subconjunto de los datos, mientras que con OVA, el conjunto de datos completo.
 
 ### Conclusiones
 
-Para finalizar este documento recogeremos en este apartado nuestras impresiones finales sobre este trabajo. La lucha contra el cancer es un tema interesante y de gran transcendencia en la actualidad, esto hace que esta práctica resulte muy inspiradora al ver como se puede aplicar nuestros conocimientos en análisis de datos a problemas de primer orden. Nuestra experiencia previa con redes neuronales (en la asignatura de Inteligencia Computacional) se basó más en entender como funcionaban dichos modelos y muchos llegamos a implementar modelos simples sin ayuda de ninguna librería, por lo que uso de las herramientas descritas en esta memoria permite crear redes neuronales muy complejas sin demasiado esfuerzo lo que es una experiencia gratificante.
+Para finalizar este documento recogeremos en este apartado nuestras impresiones finales sobre este trabajo. La lucha contra el cáncer es un tema interesante y de gran transcendencia en la actualidad, esto hace qu esta práctica resulte muy inspiradora al ver como se puede aplicar nuestros conocimientos en análisis de datos a problemas de primer orden. Nuestra experiencia previa con redes neuronales (en la asignatura de Inteligencia Computacional) se basó más en entender como funcionaban dichos modelos y muchos llegamos a implementar modelos simples sin ayuda de ninguna librería, por lo que uso de las herramientas descritas en esta memoria permite crear redes neuronales muy complejas sin demasiado esfuerzo lo que es una experiencia gratificante.
 
-Por otro lado el desarrollo de esta práctica ha estado plagado de problemas e inconvenientes, desde el comienzo con los eternos tiempos para descargar los 30 GB de imágenes, pasando por los múltiples problemas para instalar y utilizar las herramientas vistas en prácticas (MXNET e Intel Deep Learning SDK) que nos han obligado a prácticamente todos los compañeros a abandonarlas y buscar otras herramientas de las que apenas teníamos conocimientos. También cabe destacar la profunda desigualdad que ha existido entre los distintos equipos únicamente debido a componentes hardware, mientras unos equipos tardaban 13 horas en entrenar un modelo otros entrenaban 5 en ese tiempo, lo que hacia que pudieran probar más técnicas. Relacionado con estas diferencias de hardware este tipo de modelos de deep learning resultan prácticamente imposible de ejecutar en equipos que no dispongan de una GPU debido a los tiempos y al calentamiento de los equipos en la ejecución sobre CPU. Uno de los principales problemas con los tiempos de computo es que prácticamente inutilizaban los ordenadores mientras se entrenaban modelos por estár la CPU y la memoria casi al límite de sus posibilidades durante horas.
+Por otro lado el desarrollo de esta práctica ha estado plagado de problemas e inconvenientes, desde el comienzo con los eternos tiempos para descargar los 35 GB de imágenes, pasando por los múltiples problemas para instalar y utilizar las herramientas vistas en prácticas (MXNET e Intel Deep Learning SDK) que nos han obligado a prácticamente todos los compañeros a abandonarlas y buscar otras herramientas de las que apenas teníamos conocimientos. También cabe destacar la profunda desigualdad que ha existido entre los distintos equipos unicamente debido a componentes hardware, mientras unos equipos tardaban 13 horas en entrenar un modelo otros entrenaban 5 en ese tiempo, lo que hacia que pudieran probar más técnicas. Relacionado con estas diferencias de hardware este tipo de modelos de deep learning resultan prácticamente imposible de ejecutar en equipos que no dispongan de una GPU debido a los tiempos y al calentamiento de los equipos en la ejecución sobre CPU. Uno de los principales problemas con los tiempos de computo es que prácticamente inutilizaban los ordenadores mientras se entrenaban modelos por estár la CPU y la memoria casi al límite de sus posibilidades durante horas.
 
-Una posible solución a estos problemas sería haber dispuesto de un servidor o cluster sobre el que realizar estas prácticas, igualando así las condiciones entre todos los equipos. Otra alternativa sería haber utilizado un problema multiclase más simple que permitiera centrarse en experimentar con más técnicas.
+Una posible solución a estos problemas sería haber dispuesto de un servidor o clúster sobre el que realizar estas prácticas, igualando así las condiciones entre todos los equipos. Otra alternativa sería haber utilizado un problema multiclase más simple que permitiera centrarse en experimentar con más técnicas.
 
 <!-- Salto de página -->
 <div style="page-break-before: always;"></div>
@@ -371,17 +389,21 @@ Una posible solución a estos problemas sería haber dispuesto de un servidor o 
 ## 5. Listado de soluciones
 
 Las siguientes abreviaturas representan el Preprocesamiento o el Algoritmo/Software utilizado en las soluciones (y utilizadas en el tabla de abajo):
+- EFRF: Extracción de características de CNN para pasados al algoritmo *Random Forest*; con	gini	como	la	función	para	medir	la	calidad	de	una división, con 2000 arboles.
+- EFSVM: Extracción de características de CNN para pasados al algoritmo *SVM* (SVC); esquema para	la	clasificación, OVO, obteniendo	las	probabilidades, y kernel,	funciones	de	base	radial.
+- ER64AAR: Extracción de características de CNN con redimensionado de imágenes con adicionales a 64\*64, respetando las proporciones originales, normalización, sin data augmentation.
+- ER64AARDA: Extracción de características de CNN con redimensionado de imágenes con adicionales a 64\*64, respetando las proporciones originales, normalización, con data augmentation con rotación, zoom, translación y flips (aumentado \* 12: unas 96000 imágenes).
 - LfS1: Learning from scratch con CNN básica, 320 épocas sin validación, optimización Adamax.
 - LfS2: Learning from scratch con CNN básica, 600 épocas con 20% validación, optimización Adamax.
 - LfS3: Learning from scratch con CNN básica, 500 épocas con 10% validación, optimización Adadelta.
 - OVA: OVA con modelos LfS3, 20% validación, 480 épocas.
-- R64DAP: Redimensionado de imagenes sin adicionales a 64*64 sin respetar las proporciones originales, normalización, data augmentation con un poco de rotación y zoom solo.
-- RE64DAM: Redimensionado de imágenes junto con las adicionales a 64*64 sin respetar las proporciones originales, normalización, data augmentation con rotacion, zoom, translación y flips.
-- RE64DAP: Redimensionado de imágenes junto con las adicionales a 64*64 sin respetar las proporciones originales, normalización, data augmentation con un poco de rotación y zoom solo.
-- RE64ARDAM: Redimensionado de imágenes junto con las adicionales a 64*64 respetando las proporciones originales, normalización, data augmentation con rotacion, zoom, translación y flips.
+- R64DAP: Redimensionado de imagenes sin adicionales a 64\*64 sin respetar las proporciones originales, normalización, data augmentation con un poco de rotación y zoom solo.
+- RE64DAM: Redimensionado de imágenes junto con las adicionales a 64\*64 sin respetar las proporciones originales, normalización, data augmentation con rotacion, zoom, translación y flips.
+- RE64DAP: Redimensionado de imágenes junto con las adicionales a 64\*64 sin respetar las proporciones originales, normalización, data augmentation con un poco de rotación y zoom solo.
+- RE64ARDAM: Redimensionado de imágenes junto con las adicionales a 64\*64 respetando las proporciones originales, normalización, data augmentation con rotación, zoom, translación y flips.
 - VGG16: Fine-tuning con VGG16 añadiendo una capa Flaten y dos Dense (relu y softmax) a la salida. Entrenando 60 épocas a las capas nuevas, y 90 las nuevas junto con el último bloque convolutivo. 25 % de validación
 
-La siguiente tabla recoge las distintas soluciones presentadas en Kaggle, las filas que se encuentran en cursiva corresponden a pruebas realizadas pasado el 14 de Junio (no subidas a Kaggle por tanto).
+La siguiente tabla recoge las distintas soluciones presentadas en Kaggle, las filas que se encuentran luego de la solución Nº 5, corresponden a pruebas realizadas pasado el 14 de Junio (no subidas a Kaggle por tanto).
 
 | Nº Solución | Preprocesamiento | Algoritmo/Software | % de acierto entrenamiento | % de acierto test (Kaggle) | Posición Ranking |
 |-------------|------------------|--------------------|----------------------------|----------------------------|------------------|
@@ -390,9 +412,9 @@ La siguiente tabla recoge las distintas soluciones presentadas en Kaggle, las fi
 | **3**       | **RE64DAP**      | **LfS3**           | **0.853**                  | **0.841**                  | **242**          |
 | 4           | RE64ARDAM        | VGG16              | 0.731                      | 0.845                      | 261              |
 | 5           | RE64DAP          | OVA                | 0.5338                     | 0.98                       | 261              |
-|             |                  |                    |                            |                            |                  |
-|             |                  |                    |                            |                            |                  |
-
+| 6           | ER64AARDA        | EFRF               |                            | 0.91482                    | -                |
+| 7           | ER64AAR          | EFRF               |                            | 0.84436                    | -                |
+| **_8_**       | **_ER64AAR_**      | **_EFSVM_**          |                            | **_0.83300_**                | -                |
 
 Posición al cierre de la primera etapa: 160
 
