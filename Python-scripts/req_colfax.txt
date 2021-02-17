@@ -18,7 +18,7 @@ pydaal==2017.0.3.20170412
 pyparsing==2.1.4
 python-dateutil==2.6.0
 pytz==2017.2
-PyYAML==3.12
+PyYAML==5.1
 scikit-learn==0.18.1
 scipy==0.18.1
 seaborn==0.7.1
